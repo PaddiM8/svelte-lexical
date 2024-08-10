@@ -19,7 +19,6 @@ import {
   assertSelection,
   clearEditor,
   click,
-  E2E_BROWSER,
   focusEditor,
   getHTML,
   html,
@@ -51,7 +50,6 @@ async function checkHTMLExpectationsIncludingUndoRedo(
 }
 
 test.describe('Markdown', () => {
-  test.fixme();
   test.beforeEach(({isCollab, page}) => initialize({isCollab, page}));
   const triggersAndExpectations = [
     {
@@ -152,7 +150,7 @@ test.describe('Markdown', () => {
     },
     {
       expectation:
-        '<hr class="" data-lexical-decorator="true" contenteditable="false" /><p class="PlaygroundEditorTheme__paragraph"><br></p>',
+        '<hr class="PlaygroundEditorTheme__hr" data-lexical-decorator="true" contenteditable="false" /><p class="PlaygroundEditorTheme__paragraph"><br></p>',
       importExpectation: '',
       isBlockTest: true,
       markdownImport: '',
@@ -161,7 +159,7 @@ test.describe('Markdown', () => {
     },
     {
       expectation:
-        '<hr class="" data-lexical-decorator="true" contenteditable="false" /><p class="PlaygroundEditorTheme__paragraph"><br></p>',
+        '<hr class="PlaygroundEditorTheme__hr" data-lexical-decorator="true" contenteditable="false" /><p class="PlaygroundEditorTheme__paragraph"><br></p>',
       importExpectation: '',
       isBlockTest: true,
       markdownImport: '',
@@ -329,28 +327,27 @@ test.describe('Markdown', () => {
     }
 
     if (triggersAndExpectations[i].markdownImport.length > 0) {
-      test(`Should test importing markdown (${markdownText}) trigger.`, async ({
-        page,
-        isPlainText,
-        isCollab,
-      }) => {
-        test.skip(isPlainText);
-        await focusEditor(page);
+      test.fixme(
+        `Should test importing markdown (${markdownText}) trigger.`,
+        async ({page, isPlainText, isCollab}) => {
+          test.skip(isPlainText);
+          await focusEditor(page);
 
-        await page.keyboard.type(
-          '```markdown ' + triggersAndExpectations[i].markdownImport,
-        );
-        await click(page, 'i.markdown');
+          await page.keyboard.type(
+            '```markdown ' + triggersAndExpectations[i].markdownImport,
+          );
+          await click(page, 'i.markdown');
 
-        const htmlInner = triggersAndExpectations[i].importExpectation;
-        await assertHTML(page, htmlInner);
+          const htmlInner = triggersAndExpectations[i].importExpectation;
+          await assertHTML(page, htmlInner);
 
-        // Click on markdow toggle twice to run import -> export loop and then
-        // validate that it's the same rich text after full cycle
-        await click(page, 'i.markdown');
-        await click(page, 'i.markdown');
-        await assertHTML(page, htmlInner);
-      });
+          // Click on markdow toggle twice to run import -> export loop and then
+          // validate that it's the same rich text after full cycle
+          await click(page, 'i.markdown');
+          await click(page, 'i.markdown');
+          await assertHTML(page, htmlInner);
+        },
+      );
     }
   }
 });
@@ -379,7 +376,7 @@ async function assertMarkdownImportExport(
 test.describe('Markdown', () => {
   test.beforeEach(({isCollab, isPlainText, page}) => {
     test.skip(isPlainText);
-    initialize({isCollab, page});
+    return initialize({isCollab, page});
   });
 
   const BASE_BLOCK_SHORTCUTS = [
@@ -495,14 +492,20 @@ test.describe('Markdown', () => {
     },
     {
       html: html`
-        <hr class="" contenteditable="false" data-lexical-decorator="true" />
+        <hr
+          class="PlaygroundEditorTheme__hr"
+          contenteditable="false"
+          data-lexical-decorator="true" />
         <p><br /></p>
       `,
       text: '--- ',
     },
     {
       html: html`
-        <hr class="" contenteditable="false" data-lexical-decorator="true" />
+        <hr
+          class="PlaygroundEditorTheme__hr"
+          contenteditable="false"
+          data-lexical-decorator="true" />
         <p><br /></p>
       `,
       text: '*** ',
@@ -657,7 +660,7 @@ test.describe('Markdown', () => {
   ];
 
   BASE_BLOCK_SHORTCUTS.forEach((testCase) => {
-    test.fixme(`can convert "${testCase.text}" shortcut`, async ({
+    test(`can convert "${testCase.text}" shortcut`, async ({
       page,
       isCollab,
     }) => {
@@ -681,17 +684,19 @@ test.describe('Markdown', () => {
   });
 
   SIMPLE_TEXT_FORMAT_SHORTCUTS.forEach((testCase) => {
-    test.fixme(`can convert "${testCase.text}" shortcut`, async ({
-      page,
-      isCollab,
-    }) => {
-      await focusEditor(page);
-      await page.keyboard.type(testCase.text, {
-        delay: LEGACY_EVENTS ? 50 : 0,
-      });
-      await assertHTML(page, testCase.html, undefined, {ignoreClasses: false});
-      await assertMarkdownImportExport(page, testCase.text, testCase.html);
-    });
+    test.fixme(
+      `can convert "${testCase.text}" shortcut`,
+      async ({page, isCollab}) => {
+        await focusEditor(page);
+        await page.keyboard.type(testCase.text, {
+          delay: LEGACY_EVENTS ? 50 : 0,
+        });
+        await assertHTML(page, testCase.html, undefined, {
+          ignoreClasses: false,
+        });
+        await assertMarkdownImportExport(page, testCase.text, testCase.html);
+      },
+    );
   });
 
   NESTED_TEXT_FORMAT_SHORTCUTS.forEach((testCase) => {
@@ -705,7 +710,7 @@ test.describe('Markdown', () => {
     });
   });
 
-  test.fixme('can undo/redo nested transformations', async ({page, isCollab}) => {
+  test('can undo/redo nested transformations', async ({page, isCollab}) => {
     await focusEditor(page);
     await page.keyboard.type('~~_**hello world**_~~');
 
@@ -778,7 +783,7 @@ test.describe('Markdown', () => {
     await assertHTML(page, BOLD_ITALIC_STRIKETHROUGH);
   });
 
-  test.fixme('can convert already styled text (overlapping ranges)', async ({
+  test('can convert already styled text (overlapping ranges)', async ({
     page,
   }) => {
     // type partially bold/underlined text, add opening markdown tag within bold/underline part
@@ -827,42 +832,45 @@ test.describe('Markdown', () => {
     );
   });
 
-  test.fixme('can convert markdown text into rich text', async ({page, isCollab}) => {
-    await focusEditor(page);
-    await page.keyboard.type('```markdown ');
-    await pasteFromClipboard(page, {
-      'text/plain': IMPORTED_MARKDOWN,
-    });
+  test.fixme(
+    'can convert markdown text into rich text',
+    async ({page, isCollab}) => {
+      await focusEditor(page);
+      await page.keyboard.type('```markdown ');
+      await pasteFromClipboard(page, {
+        'text/plain': IMPORTED_MARKDOWN,
+      });
 
-    const originalHTML = await getHTML(page);
+      const originalHTML = await getHTML(page);
 
-    // Import from current markdown codeblock content
-    await click(page, '.action-button .markdown');
-    await assertHTML(page, IMPORTED_MARKDOWN_HTML);
-
-    if (!isCollab) {
-      await undo(page);
-      await assertHTML(page, originalHTML);
-      await redo(page);
-      await assertHTML(page, IMPORTED_MARKDOWN_HTML);
-
-      // Click again to run export/import cycle twice to make sure
-      // no extra nodes (e.g. newlines) are created
-      await click(page, '.action-button .markdown');
-      await click(page, '.action-button .markdown');
-      await click(page, '.action-button .markdown');
+      // Import from current markdown codeblock content
       await click(page, '.action-button .markdown');
       await assertHTML(page, IMPORTED_MARKDOWN_HTML);
-    }
-  });
 
-  test.fixme('can type text with markdown', async ({page}) => {
+      if (!isCollab) {
+        await undo(page);
+        await assertHTML(page, originalHTML);
+        await redo(page);
+        await assertHTML(page, IMPORTED_MARKDOWN_HTML);
+
+        // Click again to run export/import cycle twice to make sure
+        // no extra nodes (e.g. newlines) are created
+        await click(page, '.action-button .markdown');
+        await click(page, '.action-button .markdown');
+        await click(page, '.action-button .markdown');
+        await click(page, '.action-button .markdown');
+        await assertHTML(page, IMPORTED_MARKDOWN_HTML);
+      }
+    },
+  );
+
+  test('can type text with markdown', async ({page}) => {
     await focusEditor(page);
     await page.keyboard.type(TYPED_MARKDOWN);
     await assertHTML(page, TYPED_MARKDOWN_HTML);
   });
 
-  test.fixme('itraword text format', async ({page}) => {
+  test('intraword text format', async ({page}) => {
     await focusEditor(page);
     await page.keyboard.type('he_llo_ world');
     await assertHTML(
@@ -958,7 +966,74 @@ test.describe('Markdown', () => {
     );
   });
 
-  test.fixme('can adjust selection after text match transformer', async ({page}) => {
+  test.fixme(
+    'can import several text match transformers in a same line (#5385)',
+    async ({page}) => {
+      await focusEditor(page);
+      await page.keyboard.type(
+        '```markdown [link](https://lexical.dev)[link](https://lexical.dev)![Yellow flower in tilt shift lens](' +
+          SAMPLE_IMAGE_URL +
+          ')just text in between$1$',
+      );
+      await click(page, '.action-button .markdown');
+      await waitForSelector(page, '.editor-image img');
+      await waitForSelector(page, '.editor-equation');
+      await assertHTML(
+        page,
+        html`
+          <p
+            class="PlaygroundEditorTheme__paragraph PlaygroundEditorTheme__ltr"
+            dir="ltr">
+            <a
+              class="PlaygroundEditorTheme__link PlaygroundEditorTheme__ltr"
+              dir="ltr"
+              href="https://lexical.dev">
+              <span data-lexical-text="true">link</span>
+            </a>
+            <a
+              class="PlaygroundEditorTheme__link PlaygroundEditorTheme__ltr"
+              dir="ltr"
+              href="https://lexical.dev">
+              <span data-lexical-text="true">link</span>
+            </a>
+            <span
+              class="editor-image"
+              contenteditable="false"
+              data-lexical-decorator="true">
+              <div draggable="false">
+                <img
+                  src="${SAMPLE_IMAGE_URL}"
+                  alt="Yellow flower in tilt shift lens"
+                  draggable="false"
+                  style="height: inherit; max-width: 800px; width: inherit" />
+              </div>
+            </span>
+            <span data-lexical-text="true">just text in between</span>
+            <span
+              class="editor-equation"
+              contenteditable="false"
+              data-lexical-decorator="true">
+              <img src="#" alt="" />
+              <span role="button" tabindex="-1">
+                <span class="katex">
+                  <span class="katex-html" aria-hidden="true">
+                    <span class="base">
+                      <span class="strut" style="height: 0.6444em;"></span>
+                      <span class="mord">1</span>
+                    </span>
+                  </span>
+                </span>
+              </span>
+              <img src="#" alt="" />
+            </span>
+            <br />
+          </p>
+        `,
+      );
+    },
+  );
+
+  test('can adjust selection after text match transformer', async ({page}) => {
     await focusEditor(page);
     await page.keyboard.type('Hello  world');
     await moveLeft(page, 6);
@@ -982,25 +1057,12 @@ test.describe('Markdown', () => {
     );
     // Selection starts after newly created link element
 
-    if (E2E_BROWSER === 'webkit') {
-      // TODO: safari keeps dom selection on newly inserted link although Lexical's selection
-      // is correctly adjusted to start on [ world] text node. #updateDomSelection calls
-      // selection.setBaseAndExtent correctly, but safari does not seem to sync dom selection
-      // to newly passed values of anchor/focus/offset
-      await assertSelection(page, {
-        anchorOffset: 4,
-        anchorPath: [0, 1, 0, 0],
-        focusOffset: 4,
-        focusPath: [0, 1, 0, 0],
-      });
-    } else {
-      await assertSelection(page, {
-        anchorOffset: 0,
-        anchorPath: [0, 2, 0],
-        focusOffset: 0,
-        focusPath: [0, 2, 0],
-      });
-    }
+    await assertSelection(page, {
+      anchorOffset: 0,
+      anchorPath: [0, 2, 0],
+      focusOffset: 0,
+      focusPath: [0, 2, 0],
+    });
   });
 });
 
@@ -1120,7 +1182,10 @@ const TYPED_MARKDOWN_HTML = html`
     dir="ltr">
     <span data-lexical-text="true">Quote</span>
   </blockquote>
-  <hr class="" contenteditable="false" data-lexical-decorator="true" />
+  <hr
+    class="PlaygroundEditorTheme__hr"
+    contenteditable="false"
+    data-lexical-decorator="true" />
   <ul class="PlaygroundEditorTheme__ul">
     <li
       value="1"
@@ -1193,6 +1258,7 @@ line after
     1. And can be nested
     and multiline as well
 
+.
 31. Have any starting number
 ### Inline code
 Inline \`code\` format which also \`preserves **_~~any markdown-like~~_** text\` within
@@ -1333,7 +1399,10 @@ const IMPORTED_MARKDOWN_HTML = html`
   <h3 class="PlaygroundEditorTheme__h3 PlaygroundEditorTheme__ltr" dir="ltr">
     <span data-lexical-text="true">Horizontal Rules</span>
   </h3>
-  <hr class="" contenteditable="false" data-lexical-decorator="true" />
+  <hr
+    class="PlaygroundEditorTheme__hr"
+    contenteditable="false"
+    data-lexical-decorator="true" />
   <h3 class="PlaygroundEditorTheme__h3 PlaygroundEditorTheme__ltr" dir="ltr">
     <span data-lexical-text="true">Blockquotes</span>
   </h3>
@@ -1360,15 +1429,15 @@ const IMPORTED_MARKDOWN_HTML = html`
       class="PlaygroundEditorTheme__listItem PlaygroundEditorTheme__ltr"
       dir="ltr">
       <span data-lexical-text="true">Create a list with</span>
-      <code data-lexical-text="true">
+      <code spellcheck="false" data-lexical-text="true">
         <span class="PlaygroundEditorTheme__textCode">+</span>
       </code>
       <span data-lexical-text="true">,</span>
-      <code data-lexical-text="true">
+      <code spellcheck="false" data-lexical-text="true">
         <span class="PlaygroundEditorTheme__textCode">-</span>
       </code>
       <span data-lexical-text="true">, or</span>
-      <code data-lexical-text="true">
+      <code spellcheck="false" data-lexical-text="true">
         <span class="PlaygroundEditorTheme__textCode">*</span>
       </code>
     </li>
@@ -1410,7 +1479,7 @@ const IMPORTED_MARKDOWN_HTML = html`
       <span data-lexical-text="true">
         Oredered lists started with numbers as
       </span>
-      <code data-lexical-text="true">
+      <code spellcheck="false" data-lexical-text="true">
         <span class="PlaygroundEditorTheme__textCode">1.</span>
       </code>
     </li>
@@ -1429,6 +1498,9 @@ const IMPORTED_MARKDOWN_HTML = html`
       </ol>
     </li>
   </ol>
+  <p class="PlaygroundEditorTheme__paragraph">
+    <span data-lexical-text="true">.</span>
+  </p>
   <ol start="31" class="PlaygroundEditorTheme__ol1">
     <li
       value="31"
@@ -1444,11 +1516,11 @@ const IMPORTED_MARKDOWN_HTML = html`
     class="PlaygroundEditorTheme__paragraph PlaygroundEditorTheme__ltr"
     dir="ltr">
     <span data-lexical-text="true">Inline</span>
-    <code data-lexical-text="true">
+    <code spellcheck="false" data-lexical-text="true">
       <span class="PlaygroundEditorTheme__textCode">code</span>
     </code>
     <span data-lexical-text="true">format which also</span>
-    <code data-lexical-text="true">
+    <code spellcheck="false" data-lexical-text="true">
       <span class="PlaygroundEditorTheme__textCode">
         preserves **_~~any markdown-like~~_** text
       </span>

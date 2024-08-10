@@ -70,6 +70,14 @@ export async function moveToPrevWord(page) {
   await keyUpCtrlOrAlt(page);
 }
 
+export async function selectPrevWord(page) {
+  await keyDownCtrlOrAlt(page);
+  await page.keyboard.down('Shift');
+  await page.keyboard.press('ArrowLeft');
+  await keyUpCtrlOrAlt(page);
+  await page.keyboard.up('Shift');
+}
+
 export async function moveToNextWord(page) {
   await keyDownCtrlOrAlt(page);
   await page.keyboard.press('ArrowRight');
@@ -91,15 +99,23 @@ export async function deleteNextWord(page) {
 }
 
 export async function deleteBackward(page) {
-  await page.keyboard.down('Control');
-  await page.keyboard.press('h');
-  await page.keyboard.up('Control');
+  if (IS_MAC) {
+    await page.keyboard.down('Control');
+    await page.keyboard.press('h');
+    await page.keyboard.up('Control');
+  } else {
+    await page.keyboard.press('Backspace');
+  }
 }
 
 export async function deleteForward(page) {
-  await page.keyboard.down('Control');
-  await page.keyboard.press('d');
-  await page.keyboard.up('Control');
+  if (IS_MAC) {
+    await page.keyboard.down('Control');
+    await page.keyboard.press('d');
+    await page.keyboard.up('Control');
+  } else {
+    await page.keyboard.press('Delete');
+  }
 }
 
 export async function moveToParagraphBeginning(page) {
@@ -123,6 +139,7 @@ export async function moveToParagraphEnd(page) {
 }
 
 export async function selectAll(page) {
+  // TODO Normalize #4665
   if (E2E_BROWSER === 'firefox' && IS_LINUX) {
     await evaluate(page, () => {
       const rootElement = document.querySelector('div[contenteditable="true"]');

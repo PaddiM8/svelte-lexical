@@ -22,12 +22,11 @@ import {
   keyDownCtrlOrAlt,
   keyUpCtrlOrAlt,
   test,
-  IS_WINDOWS
 } from '../utils/index.mjs';
 
 test.describe('TextEntry', () => {
-  test.beforeEach(({ isCollab, page }) => initialize({ isCollab, page }));
-  test(`Can type 'Hello Lexical' in the editor`, async ({ page }) => {
+  test.beforeEach(({isCollab, page}) => initialize({isCollab, page}));
+  test(`Can type 'Hello Lexical' in the editor`, async ({page}) => {
     const targetText = 'Hello Lexical';
     await focusEditor(page);
     await page.keyboard.type(targetText);
@@ -49,13 +48,7 @@ test.describe('TextEntry', () => {
     });
   });
 
-  test(`Can insert text and replace it`, async ({
-    isCollab,
-    page,
-    browserName,
-  }) => {
-    test.fixme(browserName === 'webkit');
-
+  test(`Can insert text and replace it`, async ({isCollab, page}) => {
     test.skip(isCollab);
     await page.locator('[data-lexical-editor]').fill('Front');
     await page.locator('[data-lexical-editor]').fill('Front updated');
@@ -77,53 +70,53 @@ test.describe('TextEntry', () => {
     });
   });
 
-  test.fixme(
-    `Can type 'Hello' as a header and insert a paragraph before`,
-    async ({ page, isPlainText }) => {
-      test.skip(isPlainText);
-      await focusEditor(page);
-      await page.keyboard.type('# Hello');
+  test(`Can type 'Hello' as a header and insert a paragraph before`, async ({
+    page,
+    isPlainText,
+  }) => {
+    test.skip(isPlainText);
+    await focusEditor(page);
+    await page.keyboard.type('# Hello');
 
-      await moveToLineBeginning(page);
+    await moveToLineBeginning(page);
 
-      await assertHTML(
-        page,
-        html`
-          <h1
-            class="PlaygroundEditorTheme__h1 PlaygroundEditorTheme__ltr"
-            dir="ltr">
-            <span data-lexical-text="true">Hello</span>
-          </h1>
-        `,
-      );
-      await assertSelection(page, {
-        anchorOffset: 0,
-        anchorPath: [0, 0, 0],
-        focusOffset: 0,
-        focusPath: [0, 0, 0],
-      });
+    await assertHTML(
+      page,
+      html`
+        <h1
+          class="PlaygroundEditorTheme__h1 PlaygroundEditorTheme__ltr"
+          dir="ltr">
+          <span data-lexical-text="true">Hello</span>
+        </h1>
+      `,
+    );
+    await assertSelection(page, {
+      anchorOffset: 0,
+      anchorPath: [0, 0, 0],
+      focusOffset: 0,
+      focusPath: [0, 0, 0],
+    });
 
-      await page.keyboard.press('Enter');
+    await page.keyboard.press('Enter');
 
-      await assertHTML(
-        page,
-        html`
-          <p class="PlaygroundEditorTheme__paragraph"><br /></p>
-          <h1
-            class="PlaygroundEditorTheme__h1 PlaygroundEditorTheme__ltr"
-            dir="ltr">
-            <span data-lexical-text="true">Hello</span>
-          </h1>
-        `,
-      );
-      await assertSelection(page, {
-        anchorOffset: 0,
-        anchorPath: [1, 0, 0],
-        focusOffset: 0,
-        focusPath: [1, 0, 0],
-      });
-    },
-  );
+    await assertHTML(
+      page,
+      html`
+        <p class="PlaygroundEditorTheme__paragraph"><br /></p>
+        <h1
+          class="PlaygroundEditorTheme__h1 PlaygroundEditorTheme__ltr"
+          dir="ltr">
+          <span data-lexical-text="true">Hello</span>
+        </h1>
+      `,
+    );
+    await assertSelection(page, {
+      anchorOffset: 0,
+      anchorPath: [1, 0, 0],
+      focusOffset: 0,
+      focusPath: [1, 0, 0],
+    });
+  });
 
   test(`Can insert a paragraph between two text nodes`, async ({
     page,
@@ -148,7 +141,7 @@ test.describe('TextEntry', () => {
         </p>
       `,
       undefined,
-      { ignoreClasses: true },
+      {ignoreClasses: true},
     );
     await assertSelection(page, {
       anchorOffset: 0,
@@ -218,7 +211,7 @@ test.describe('TextEntry', () => {
 
   test.fixme(
     'Paragraphed text entry and selection',
-    async ({ page, isRichText }) => {
+    async ({page, isRichText}) => {
       await focusEditor(page);
       await page.keyboard.type('Hello World.');
       await page.keyboard.press('Enter');
@@ -426,7 +419,7 @@ test.describe('TextEntry', () => {
     });
   });
 
-  test('First paragraph backspace handling', async ({ page, isRichText }) => {
+  test('First paragraph backspace handling', async ({page, isRichText}) => {
     await focusEditor(page);
 
     // Add some trimmable text
@@ -507,7 +500,7 @@ test.describe('TextEntry', () => {
     }
   });
 
-  test('Mix of paragraphs and break points', async ({ page, isRichText }) => {
+  test('Mix of paragraphs and break points', async ({page, isRichText}) => {
     await focusEditor(page);
 
     // Add some line breaks
@@ -638,12 +631,9 @@ test.describe('TextEntry', () => {
   test('Empty paragraph and new line node selection', async ({
     isRichText,
     page,
-    browserName,
-    isCollab
+    isCollab,
   }) => {
-    if (IS_WINDOWS && browserName === 'firefox' && isCollab) {
-      test.fixme();
-    }
+    test.fixme(isCollab);
     await focusEditor(page);
 
     // Add paragraph

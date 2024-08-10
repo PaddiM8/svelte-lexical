@@ -7,6 +7,7 @@
  */
 
 import {
+  IS_LINUX,
   assertHTML,
   focusEditor,
   html,
@@ -19,7 +20,8 @@ test.describe('Autocomplete', () => {
   test.beforeEach(({isCollab, page}) =>
     initialize({isAutocomplete: true, isCollab, page}),
   );
-  test.fixme('Can autocomplete a word', async ({page, isPlainText}) => {
+  test('Can autocomplete a word', async ({page, isPlainText, browserName}) => {
+    test.fixme(browserName === 'firefox' && IS_LINUX);
     await focusEditor(page);
     await page.keyboard.type('Sort by alpha');
     await sleep(500);
@@ -31,7 +33,9 @@ test.describe('Autocomplete', () => {
           dir="ltr">
           <span data-lexical-text="true">Sort by alpha</span>
           <span contenteditable="false" data-lexical-decorator="true">
-            <span spellcheck="false" style="color: rgb(204, 204, 204)">
+            <span
+              class="PlaygroundEditorTheme__autocomplete"
+              spellcheck="false">
               betical (TAB)
             </span>
           </span>

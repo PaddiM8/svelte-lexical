@@ -11,6 +11,7 @@ import type {EditorThemeClasses} from 'svelte-lexical';
 import './PlaygroundEditorTheme.css';
 
 const theme: EditorThemeClasses = {
+  autocomplete: 'PlaygroundEditorTheme__autocomplete',
   blockCursor: 'PlaygroundEditorTheme__blockCursor',
   characterLimit: 'PlaygroundEditorTheme__characterLimit',
   code: 'PlaygroundEditorTheme__code',
@@ -59,10 +60,15 @@ const theme: EditorThemeClasses = {
     h5: 'PlaygroundEditorTheme__h5',
     h6: 'PlaygroundEditorTheme__h6',
   },
+  hr: 'PlaygroundEditorTheme__hr',
   image: 'editor-image',
   indent: 'PlaygroundEditorTheme__indent',
+  inlineImage: 'inline-editor-image',
+  layoutContainer: 'PlaygroundEditorTheme__layoutContainer',
+  layoutItem: 'PlaygroundEditorTheme__layoutItem',
   link: 'PlaygroundEditorTheme__link',
   list: {
+    checklist: 'PlaygroundEditorTheme__checklist',
     listitem: 'PlaygroundEditorTheme__listItem',
     listitemChecked: 'PlaygroundEditorTheme__listItemChecked',
     listitemUnchecked: 'PlaygroundEditorTheme__listItemUnchecked',
@@ -99,6 +105,7 @@ const theme: EditorThemeClasses = {
   tableCellSortedIndicator: 'PlaygroundEditorTheme__tableCellSortedIndicator',
   tableResizeRuler: 'PlaygroundEditorTheme__tableCellResizeRuler',
   tableSelected: 'PlaygroundEditorTheme__tableSelected',
+  tableSelection: 'PlaygroundEditorTheme__tableSelection',
   text: {
     bold: 'PlaygroundEditorTheme__textBold',
     code: 'PlaygroundEditorTheme__textCode',

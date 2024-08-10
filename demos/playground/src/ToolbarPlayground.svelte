@@ -14,17 +14,22 @@
     CodeDropDrownItem,
     CodeLanguageDropDown,
     FontFamilyDropDown,
-    FontSizeDropDown,
+    // FontSizeDropDown,
+    FontSizeEntry,
     BoldButton,
     ItalicButton,
     UnderlineButton,
-    StrikethroughButton,
     InsertLink,
     FormatCodeButton,
     InsertDropDown,
     DropDownAlign,
     InsertHRDropDownItem,
     InsertImageDropDownItem,
+    MoreStylesDropDown,
+    StrikethroughDropDownItem,
+    SubscriptDropDownItem,
+    SuperscriptDropDownItem,
+    ClearFormattingDropDownItem,
   } from 'svelte-lexical';
   import InsertImageDialog from './InsertImageDialog.svelte';
 
@@ -53,14 +58,20 @@
     <CodeLanguageDropDown />
   {:else}
     <FontFamilyDropDown />
-    <FontSizeDropDown />
+    <!-- <FontSizeDropDown /> -->
+    <FontSizeEntry />
     <Divider />
     <BoldButton />
     <ItalicButton />
     <UnderlineButton />
-    <StrikethroughButton />
-    <InsertLink />
     <FormatCodeButton />
+    <InsertLink />
+    <MoreStylesDropDown>
+      <StrikethroughDropDownItem />
+      <SubscriptDropDownItem />
+      <SuperscriptDropDownItem />
+      <ClearFormattingDropDownItem />
+    </MoreStylesDropDown>
     <Divider />
     <InsertDropDown>
       <InsertHRDropDownItem />

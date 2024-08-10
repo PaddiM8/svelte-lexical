@@ -38,6 +38,8 @@
     CaptionEditorCollaborationPlugin,
     CaptionEditorHistoryPlugin,
     CAN_USE_DOM,
+    MarkdownShortcutPlugin,
+    ALL_TRANSFORMERS,
   } from 'svelte-lexical';
   import {prepopulatedRichText} from './prepopulatedRichText';
   import type {SettingsStore} from './settings/setttingsStore';
@@ -50,16 +52,16 @@
 
   const settings: SettingsStore = getContext('settings');
   const skipCollaborationInit =
-    // @ts-ignore split view has right and let frames
+    // @ts-expect-error split view has right and let frames
     window.parent != null && window.parent.frames.right === window;
 
   $: placeholderText = $settings.isCollab
     ? 'Enter some collaborative rich text...'
     : $settings.isRichText
-    ? 'Enter some rich text...'
-    : 'Enter some plain text...';
+      ? 'Enter some rich text...'
+      : 'Enter some plain text...';
 
-  let isSmallWidthViewport = false;
+  let isSmallWidthViewport = true;
 
   let editorDiv;
 
@@ -67,8 +69,8 @@
     editorState: $settings.isCollab
       ? null
       : $settings.emptyEditor
-      ? undefined
-      : prepopulatedRichText,
+        ? undefined
+        : prepopulatedRichText,
     namespace: 'Playground',
     nodes: [
       HeadingNode,
@@ -99,7 +101,7 @@
         isSmallWidthViewport = isNextSmallWidthViewport;
       }
     }
-
+    updateViewPortWidth();
     window.addEventListener('resize', updateViewPortWidth);
 
     return () => {
@@ -125,6 +127,7 @@
       <KeywordPlugin {keywordsRegex} />
       <HashtagPlugin />
       <AutoLinkPlugin />
+      <MarkdownShortcutPlugin transformers={ALL_TRANSFORMERS} />
 
       {#if $settings.isRichText}
         <RichTextPlugin />
@@ -148,9 +151,9 @@
           {/if}
         </ImagePlugin>
         <LinkPlugin {validateUrl} />
+        <CodeHighlightPlugin />
         {#if !isSmallWidthViewport}
           <FloatingLinkEditorPlugin anchorElem={editorDiv} />
-          <CodeHighlightPlugin />
           <CodeActionMenuPlugin anchorElem={editorDiv} />
         {/if}
       {:else}

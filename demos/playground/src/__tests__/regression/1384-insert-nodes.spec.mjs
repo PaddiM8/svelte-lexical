@@ -18,7 +18,7 @@ import {
 
 test.describe('Regression test #1384', () => {
   test.beforeEach(({isCollab, page}) => initialize({isCollab, page}));
-  test.fixme(`Properly pastes in code blocks`, async ({
+  test(`Properly pastes in code blocks`, async ({
     page,
     isPlainText,
     isCollab,

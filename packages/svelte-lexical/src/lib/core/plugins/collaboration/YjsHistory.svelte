@@ -1,3 +1,5 @@
+<!-- eslint-disable-next-line svelte/no-unused-svelte-ignore -->
+<!-- svelte-ignore state_referenced_locally -->
 <script lang="ts">
   import {mergeRegister} from '@lexical/utils';
   import {createUndoManager, type Binding} from '@lexical/yjs';
@@ -10,8 +12,12 @@
   import {onMount} from 'svelte';
   import {CAN_REDO_COMMAND, CAN_UNDO_COMMAND} from 'lexical';
 
-  export let editor: LexicalEditor;
-  export let binding: Binding;
+  interface Props {
+    editor: LexicalEditor;
+    binding: Binding;
+  }
+
+  let {editor, binding}: Props = $props();
 
   const undoManager = createUndoManager(binding, binding.root.getSharedType());
 

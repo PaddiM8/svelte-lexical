@@ -1,4 +1,4 @@
-<script lang="ts" context="module">
+<script lang="ts" module>
   export type InitialEditorStateType =
     | null
     | string
@@ -6,7 +6,6 @@
     | ((editor: LexicalEditor) => void);
 
   export type InitialConfigType = Readonly<{
-    editor__DEPRECATED?: LexicalEditor | null;
     namespace: string;
     nodes?: ReadonlyArray<Klass<LexicalNode> | LexicalNodeReplacement>;
     onError: (error: Error, editor: LexicalEditor) => void;
@@ -17,6 +16,8 @@
   }>;
 </script>
 
+<!-- eslint-disable-next-line svelte/no-unused-svelte-ignore -->
+<!-- svelte-ignore state_referenced_locally -->
 <script lang="ts">
   import {createEmptyHistoryState} from '@lexical/history';
   import {
@@ -29,15 +30,22 @@
     type LexicalNodeReplacement,
     type HTMLConfig,
   } from 'lexical';
-  import {onMount} from 'svelte';
+  import {onMount, setContext} from 'svelte';
   import {initializeEditor} from './initializeEditor.js';
   import {
     createSharedEditorContext,
     setEditor,
     setHistoryStateContext,
   } from './composerContext.js';
+  import {writable} from 'svelte/store';
+  import {initializeExtensions} from './editorExtensions.js';
 
-  export let initialConfig: InitialConfigType;
+  interface Props {
+    initialConfig: InitialConfigType;
+    children?: import('svelte').Snippet;
+  }
+
+  let {initialConfig, children}: Props = $props();
 
   const {
     theme,
@@ -58,21 +66,32 @@
     theme,
   });
   initializeEditor(editor, initialEditorState);
+  initializeExtensions(editor);
   setEditor(editor);
 
-  setHistoryStateContext(createEmptyHistoryState());
+  const isEditable = writable(editable !== undefined ? editable : true);
+  setContext('isEditable', isEditable);
+
+  onMount(() => {
+    editor.setEditable($isEditable);
+    return editor.registerEditableListener((editable) => {
+      $isEditable = editable;
+    });
+  });
+
+  const historyState = createEmptyHistoryState();
+  setHistoryStateContext(historyState);
 
   // allows sharing context between plugins and decorator nodes
   createSharedEditorContext();
 
-  onMount(() => {
-    const isEditable = initialConfig.editable;
-    editor.setEditable(isEditable !== undefined ? isEditable : true);
-  });
-
   export function getEditor() {
     return editor;
   }
+
+  export function getHistoryState() {
+    return historyState;
+  }
 </script>
 
-<slot />
+{@render children?.()}

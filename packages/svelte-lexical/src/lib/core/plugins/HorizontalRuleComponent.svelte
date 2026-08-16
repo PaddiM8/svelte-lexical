@@ -1,3 +1,5 @@
+<!-- eslint-disable-next-line svelte/no-unused-svelte-ignore -->
+<!-- svelte-ignore state_referenced_locally -->
 <script lang="ts">
   import {
     addClassNamesToElement,
@@ -5,13 +7,8 @@
     removeClassNamesFromElement,
   } from '@lexical/utils';
   import {
-    $getNodeByKey as getNodeByKey,
-    $getSelection as getSelection,
-    $isNodeSelection as isNodeSelection,
     CLICK_COMMAND,
     COMMAND_PRIORITY_LOW,
-    KEY_BACKSPACE_COMMAND,
-    KEY_DELETE_COMMAND,
     type LexicalEditor,
   } from 'lexical';
   import {onMount} from 'svelte';
@@ -19,33 +16,24 @@
     clearSelection,
     createNodeSelectionStore,
   } from '../nodeSelectionStore.js';
-  import {$isHorizontalRuleNode as isHorizontalRuleNode} from './HorizontalRuleNode.js';
 
-  export let editor: LexicalEditor;
-  export let nodeKey: string;
-  export let self: HTMLElement;
+  interface Props {
+    editor: LexicalEditor;
+    nodeKey: string;
+    self: HTMLElement;
+  }
+
+  let {editor, nodeKey, self}: Props = $props();
   let isSelected = createNodeSelectionStore(editor, nodeKey);
-  const isSelectedClassName = 'selected';
+  const isSelectedClassName = editor._config.theme.hrSelected ?? 'selected';
 
-  $: {
+  $effect(() => {
     if ($isSelected) {
       addClassNamesToElement(self, isSelectedClassName);
     } else {
       removeClassNamesFromElement(self, isSelectedClassName);
     }
-  }
-
-  function onDelete(event: KeyboardEvent) {
-    if ($isSelected && isNodeSelection(getSelection())) {
-      event.preventDefault();
-      const node = getNodeByKey(nodeKey);
-      if (isHorizontalRuleNode(node)) {
-        node.remove();
-        return true;
-      }
-    }
-    return false;
-  }
+  });
 
   onMount(() => {
     return mergeRegister(
@@ -61,16 +49,6 @@
           }
           return false;
         },
-        COMMAND_PRIORITY_LOW,
-      ),
-      editor.registerCommand(
-        KEY_DELETE_COMMAND,
-        onDelete,
-        COMMAND_PRIORITY_LOW,
-      ),
-      editor.registerCommand(
-        KEY_BACKSPACE_COMMAND,
-        onDelete,
         COMMAND_PRIORITY_LOW,
       ),
     );

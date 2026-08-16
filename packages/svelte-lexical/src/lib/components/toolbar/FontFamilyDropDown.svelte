@@ -3,7 +3,7 @@
   import {$getSelection as getSelection} from 'lexical';
   import {getContext} from 'svelte';
   import type {Writable} from 'svelte/store';
-  import {getEditor, getIsEditable} from '$lib/core/composerContext.js';
+  import {getActiveEditor, getIsEditable} from '$lib/core/composerContext.js';
   import DropDown from '../generic/dropdown/DropDown.svelte';
   import DropDownItem from '../generic/dropdown/DropDownItem.svelte';
 
@@ -16,13 +16,13 @@
     ['Verdana', 'Verdana'],
   ];
 
-  const editor = getEditor();
+  const activeEditor = getActiveEditor();
   const value: Writable<string> = getContext('fontFamily');
   const style = 'font-family';
   const isEditable = getIsEditable();
 
   const handleClick = (option: string) => {
-    editor.update(() => {
+    $activeEditor.update(() => {
       const selection = getSelection();
       if (selection !== null) {
         patchStyleText(selection, {
@@ -41,10 +41,11 @@
   buttonLabel={$value}
   buttonIconClassName="icon block-type font-family"
   {buttonAriaLabel}>
+  <!-- eslint-disable-next-line svelte/require-each-key -->
   {#each FONT_FAMILY_OPTIONS as [option, text]}
     <DropDownItem
       class={`item ${$value === option ? 'active dropdown-item-active' : ''}`}
-      on:click={() => handleClick(option)}>
+      onclick={() => handleClick(option)}>
       <span class="text">{text}</span>
     </DropDownItem>
   {/each}

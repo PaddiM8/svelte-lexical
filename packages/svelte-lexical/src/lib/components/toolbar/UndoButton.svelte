@@ -1,9 +1,5 @@
 <script lang="ts">
-  import {
-    CAN_UNDO_COMMAND,
-    UNDO_COMMAND,
-    COMMAND_PRIORITY_CRITICAL,
-  } from 'lexical';
+  import {CAN_UNDO_COMMAND, COMMAND_PRIORITY_CRITICAL} from 'lexical';
   import {onMount} from 'svelte';
   import {
     getEditor,
@@ -11,12 +7,13 @@
     getActiveEditor,
   } from '$lib/core/composerContext.js';
   import {IS_APPLE} from '@lexical/utils';
+  import {undo} from '$lib/core/commands/commands.js';
 
   const editor = getEditor();
   const activeEditor = getActiveEditor();
   const isEditable = getIsEditable();
 
-  let canUndo = false;
+  let canUndo = $state(false);
 
   // unregisters onDestroy through returned callback
   onMount(() => {
@@ -33,12 +30,12 @@
 
 <button
   disabled={!canUndo || !$isEditable}
-  on:click={() => {
-    $activeEditor.dispatchCommand(UNDO_COMMAND, undefined);
+  onclick={() => {
+    undo($activeEditor);
   }}
   title={IS_APPLE ? 'Undo (⌘Z)' : 'Undo (Ctrl+Z)'}
   type="button"
   class="toolbar-item spaced"
   aria-label="Undo">
-  <i class="format undo" />
+  <i class="format undo"></i>
 </button>

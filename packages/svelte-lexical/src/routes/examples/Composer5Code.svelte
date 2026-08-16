@@ -25,7 +25,7 @@
     AutoLinkPlugin,
     CodeNode,
     CodeHighlightNode,
-    CodeHighlightPlugin,
+    CodeHighlightPrismPlugin,
     CodeActionMenuPlugin,
   } from '$lib/index.js';
   import {
@@ -36,7 +36,7 @@
     HorizontalRuleNode,
     ImageNode,
   } from '$lib/index.js';
-  import PlaygroundEditorTheme from '../themes/PlaygroundEditorTheme.js';
+  import {theme as editorTheme} from '$lib/themes/system-light-dark/index.js';
   import {
     $getRoot as getRoot,
     $createTextNode as createTextNode,
@@ -45,11 +45,11 @@
   import {onMount} from 'svelte';
   import Composer5Toolbar from './Composer5Toolbar.svelte';
 
-  let isSmallWidthViewport = true;
-  let editorDiv;
+  let isSmallWidthViewport = $state(true);
+  let editorDiv: HTMLDivElement | undefined = $state();
 
   const initialConfig = {
-    theme: PlaygroundEditorTheme,
+    theme: editorTheme,
     namespace: 'pg_sveltekit',
     nodes: [
       HeadingNode,
@@ -104,7 +104,7 @@
 </script>
 
 <Composer {initialConfig}>
-  <div class="editor-shell">
+  <div class="editor-shell svelte-lexical">
     <Composer5Toolbar />
     <div class="editor-container">
       <div class="editor-scroller">
@@ -120,7 +120,7 @@
       <ImagePlugin captionsEnabled={false} />
       <AutoLinkPlugin />
       <LinkPlugin {validateUrl} />
-      <CodeHighlightPlugin />
+      <CodeHighlightPrismPlugin />
       {#if !isSmallWidthViewport}
         <FloatingLinkEditorPlugin anchorElem={editorDiv} />
         <CodeActionMenuPlugin anchorElem={editorDiv} />

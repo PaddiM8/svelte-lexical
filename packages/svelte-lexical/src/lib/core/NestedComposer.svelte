@@ -1,19 +1,30 @@
+<!-- eslint-disable-next-line svelte/no-unused-svelte-ignore -->
+<!-- svelte-ignore state_referenced_locally -->
 <script lang="ts">
-  import type {
-    EditorThemeClasses,
-    Klass,
-    LexicalEditor,
-    LexicalNode,
-    KlassConstructor,
-    Transform,
+  import {
+    type EditorThemeClasses,
+    type LexicalEditor,
+    type LexicalNode,
+    type KlassConstructor,
+    type Transform,
+    createSharedNodeState,
   } from 'lexical';
   import {onMount, setContext} from 'svelte';
 
-  // unlike Composer, a NestedComposer doesn't create the editor, it is passed to it
-  export let initialEditor: LexicalEditor;
-  export let parentEditor: LexicalEditor;
-  export let initialTheme: EditorThemeClasses | null = null;
-  export let initialNodes: ReadonlyArray<Klass<LexicalNode>> | null = null;
+  interface Props {
+    // unlike Composer, a NestedComposer doesn't create the editor, it is passed to it
+    initialEditor: LexicalEditor;
+    parentEditor: LexicalEditor;
+    initialTheme?: EditorThemeClasses | null;
+    children?: import('svelte').Snippet;
+  }
+
+  let {
+    initialEditor = $bindable(),
+    parentEditor,
+    initialTheme = null,
+    children,
+  }: Props = $props();
 
   function getTransformSetFromKlass(
     klass: KlassConstructor<typeof LexicalNode>,
@@ -33,29 +44,16 @@
 
   initialEditor._parentEditor = parentEditor;
 
-  if (!initialNodes) {
-    const parentNodes = (initialEditor._nodes = new Map(parentEditor._nodes));
-    for (const [type, entry] of parentNodes) {
-      initialEditor._nodes.set(type, {
-        exportDOM: entry.exportDOM,
-        klass: entry.klass,
-        replace: entry.replace,
-        replaceWithKlass: entry.replaceWithKlass,
-        transforms: getTransformSetFromKlass(entry.klass),
-      });
-    }
-  } else {
-    for (const klass of initialNodes) {
-      const type = klass.getType();
-      const registeredKlass = initialEditor._nodes.get(klass.getType());
-      initialEditor._nodes.set(type, {
-        exportDOM: registeredKlass ? registeredKlass.exportDOM : undefined,
-        klass,
-        replace: null,
-        replaceWithKlass: null,
-        transforms: new Set(),
-      });
-    }
+  const parentNodes = (initialEditor._nodes = new Map(parentEditor._nodes));
+  for (const [type, entry] of parentNodes) {
+    initialEditor._nodes.set(type, {
+      exportDOM: entry.exportDOM,
+      klass: entry.klass,
+      replace: entry.replace,
+      replaceWithKlass: entry.replaceWithKlass,
+      sharedNodeState: createSharedNodeState(entry.klass),
+      transforms: getTransformSetFromKlass(entry.klass),
+    });
   }
 
   initialEditor._config.namespace = parentEditor._config.namespace;
@@ -70,4 +68,4 @@
 </script>
 
 <!-- TODO: [from lexical - not implemented - not sure if required] If collaboration is enabled, make sure we don't render the children until the collaboration subdocument is ready. -->
-<slot />
+{@render children?.()}

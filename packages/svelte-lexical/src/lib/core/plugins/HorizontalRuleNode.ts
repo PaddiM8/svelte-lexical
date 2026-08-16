@@ -11,6 +11,7 @@ import type {
 import {createCommand, DecoratorNode, $applyNodeReplacement} from 'lexical';
 import HorizontalRuleComponent from './HorizontalRuleComponent.svelte';
 import {addClassNamesToElement} from '@lexical/utils';
+import {mount} from 'svelte';
 
 export type SerializedHorizontalRuleNode = SerializedLexicalNode;
 
@@ -29,7 +30,7 @@ export class HorizontalRuleNode extends DecoratorNode<unknown> {
   static importJSON(
     serializedNode: SerializedHorizontalRuleNode,
   ): HorizontalRuleNode {
-    return $createHorizontalRuleNode();
+    return $createHorizontalRuleNode().updateFromJSON(serializedNode);
   }
 
   static importDOM(): DOMConversionMap | null {
@@ -47,13 +48,6 @@ export class HorizontalRuleNode extends DecoratorNode<unknown> {
    */
   static skipDecorateRender = true;
 
-  exportJSON(): SerializedLexicalNode {
-    return {
-      type: 'horizontalrule',
-      version: 1,
-    };
-  }
-
   exportDOM(): DOMExportOutput {
     return {element: document.createElement('hr')};
   }
@@ -62,7 +56,7 @@ export class HorizontalRuleNode extends DecoratorNode<unknown> {
     const hr = document.createElement('hr');
     addClassNamesToElement(hr, config.theme.hr);
 
-    new HorizontalRuleComponent({
+    mount(HorizontalRuleComponent, {
       target: hr,
       props: {
         nodeKey: this.__key,

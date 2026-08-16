@@ -1,28 +1,56 @@
 <script lang="ts">
-  export let showModal: boolean;
+  interface Props {
+    showModal: boolean;
+    stopPropagation?: boolean;
+    onclick?: (event: MouseEvent) => void;
+    children?: import('svelte').Snippet;
+  }
 
-  let dialog: HTMLDialogElement;
+  let {
+    showModal = $bindable(),
+    stopPropagation = true,
+    onclick,
+    children,
+  }: Props = $props();
 
-  $: if (dialog) {
+  let dialog: HTMLDialogElement | undefined = $state();
+
+  $effect(() => {
+    if (!dialog) return;
+
     if (showModal) {
       dialog.showModal();
     } else {
       dialog.close();
     }
+  });
+
+  function handleDialogClick(event: MouseEvent) {
+    if (event.target === event.currentTarget) {
+      dialog?.close();
+    }
+  }
+
+  function handleContentClick(event: MouseEvent) {
+    if (stopPropagation) {
+      event.stopPropagation();
+    }
+    onclick?.(event);
   }
 </script>
 
-<!-- svelte-ignore a11y-click-events-have-key-events -->
-<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
-<dialog
-  bind:this={dialog}
-  on:close={() => (showModal = false)}
-  on:click|self={() => dialog.close()}>
-  <!-- svelte-ignore a11y-no-static-element-interactions -->
-  <div on:click|stopPropagation>
-    <slot />
-  </div>
-</dialog>
+{#if showModal}
+  <!-- svelte-ignore a11y_click_events_have_key_events -->
+  <dialog
+    bind:this={dialog}
+    onclose={() => (showModal = false)}
+    onclick={handleDialogClick}>
+    <!-- svelte-ignore a11y_no_static_element_interactions -->
+    <div onclick={handleContentClick}>
+      {@render children?.()}
+    </div>
+  </dialog>
+{/if}
 
 <style>
   dialog {

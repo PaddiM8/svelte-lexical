@@ -1,22 +1,49 @@
 {
   "name": "svelte-lexical",
   "description": "Rich Text editor for Svelte based on lexical",
-  "version": "0.4.1",
+  "version": "0.6.5",
   "type": "module",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/umaranis/svelte-lexical",
+    "url": "git+https://github.com/umaranis/svelte-lexical.git",
     "directory": "svelte-lexical"
   },
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
       "svelte": "./dist/index.js"
+    },
+    "./shiki": {
+      "types": "./dist/shiki/index.d.ts",
+      "svelte": "./dist/shiki/index.js"
+    },
+    "./dist/themes/default": {
+      "types": "./dist/themes/default/index.d.ts",
+      "svelte": "./dist/themes/default/index.js"
+    },
+    "./dist/themes/light-dark": {
+      "types": "./dist/themes/light-dark/index.d.ts",
+      "svelte": "./dist/themes/light-dark/index.js"
+    },
+    "./dist/themes/system-light-dark": {
+      "types": "./dist/themes/system-light-dark/index.d.ts",
+      "svelte": "./dist/themes/system-light-dark/index.js"
+    },
+    "./dist/themes/system-light-dark/ui": {
+      "types": "./dist/themes/system-light-dark/ui/index.d.ts",
+      "svelte": "./dist/themes/system-light-dark/ui/index.js"
     }
   },
   "svelte": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "typesVersions": {
+    "*": {
+      "shiki": [
+        "./dist/shiki/index.d.ts"
+      ]
+    }
+  },
   "files": [
     "dist",
     "!dist/**/*.test.*",
@@ -27,7 +54,7 @@
     "build": "vite build && pnpm package",
     "preview": "vite preview",
     "package": "svelte-kit sync && svelte-package && publint",
-    "prepublishOnly": "npm run package",
+    "prepublishOnly": "pnpm run package",
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --fail-on-warnings --compiler-warnings \"a11y-no-noninteractive-element-interactions:ignore,a11y-no-static-element-interactions:ignore\"",
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
     "test": "vitest run",
@@ -38,34 +65,35 @@
     "format:check": "prettier --check . --ignore-path ../../.gitignore"
   },
   "peerDependencies": {
-    "svelte": "^4.0.0"
+    "svelte": "^5.0.0"
   },
   "devDependencies": {
-    "@sveltejs/adapter-auto": "^3.2.0",
-    "@sveltejs/kit": "^2.5.5",
-    "@sveltejs/package": "^2.3.0",
-    "@sveltejs/vite-plugin-svelte": "^3.0.2",
-    "@testing-library/jest-dom": "^6.4.2",
-    "@testing-library/svelte": "^4.1.0",
-    "@testing-library/user-event": "^14.5.2",
+    "@eslint/eslintrc": "^3.3.5",
+    "@sveltejs/adapter-auto": "^4.0.0",
+    "@sveltejs/kit": "^2.20.3",
+    "@sveltejs/package": "^2.3.10",
+    "@sveltejs/vite-plugin-svelte": "^5.0.3",
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/svelte": "^5.2.7",
+    "@testing-library/user-event": "^14.6.1",
     "@tsconfig/svelte": "^5.0.4",
     "@types/lodash-es": "^4.17.12",
-    "@typescript-eslint/eslint-plugin": "^5.59.9",
-    "@typescript-eslint/parser": "^5.59.9",
-    "@vitest/ui": "^1.4.0",
-    "eslint": "^8.42.0",
-    "eslint-config-prettier": "^8.8.0",
-    "eslint-plugin-import": "^2.27.5",
-    "eslint-plugin-svelte": "^2.35.1",
-    "jsdom": "^24.0.0",
+    "@vitest/ui": "^3.0.8",
+    "csstype": "^3.2.3",
+    "eslint": "^9.24.0",
+    "eslint-plugin-import": "^2.31.0",
+    "globals": "^16.0.0",
+    "jsdom": "^26.0.0",
     "prettier-plugin-organize-attributes": "^1.0.0",
-    "prettier-plugin-svelte": "^3.2.2",
-    "publint": "^0.1.9",
-    "svelte": "^4.2.12",
-    "svelte-check": "^3.4.3",
-    "typescript": "^5.1.3",
-    "vite": "^5.3.3",
-    "vitest": "^1.4.0"
+    "prettier-plugin-svelte": "^3.3.3",
+    "publint": "^0.3.18",
+    "svelte": "5.55.1",
+    "svelte-check": "^4.4.6",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.57.0",
+    "vite": "^6.3.5",
+    "vite-plugin-devtools-json": "^1.0.0",
+    "vitest": "^3.0.8"
   },
   "keywords": [
     "lexical",
@@ -75,28 +103,30 @@
     "svelte"
   ],
   "dependencies": {
-    "@lexical/clipboard": "0.16.0",
-    "@lexical/code": "0.16.0",
-    "@lexical/file": "0.16.0",
-    "@lexical/hashtag": "0.16.0",
-    "@lexical/history": "0.16.0",
-    "@lexical/html": "0.16.0",
-    "@lexical/link": "0.16.0",
-    "@lexical/list": "0.16.0",
-    "@lexical/mark": "0.16.0",
-    "@lexical/overflow": "0.16.0",
-    "@lexical/plain-text": "0.16.0",
-    "@lexical/rich-text": "0.16.0",
-    "@lexical/selection": "0.16.0",
-    "@lexical/table": "0.16.0",
-    "@lexical/utils": "0.16.0",
-    "@lexical/yjs": "0.16.0",
-    "@lexical/markdown": "0.16.0",
-    "@lexical/text": "0.16.0",
-    "lexical": "0.16.0",
+    "@lexical/clipboard": "0.40.0",
+    "@lexical/code": "0.40.0",
+    "@lexical/code-shiki": "0.40.0",
+    "@lexical/file": "0.40.0",
+    "@lexical/hashtag": "0.40.0",
+    "@lexical/history": "0.40.0",
+    "@lexical/html": "0.40.0",
+    "@lexical/link": "0.40.0",
+    "@lexical/list": "0.40.0",
+    "@lexical/mark": "0.40.0",
+    "@lexical/markdown": "0.40.0",
+    "@lexical/overflow": "0.40.0",
+    "@lexical/plain-text": "0.40.0",
+    "@lexical/rich-text": "0.40.0",
+    "@lexical/selection": "0.40.0",
+    "@lexical/table": "0.40.0",
+    "@lexical/text": "0.40.0",
+    "@lexical/utils": "0.40.0",
+    "@lexical/yjs": "0.40.0",
+    "bluesky-post-embed": "^1.0.5",
+    "lexical": "0.40.0",
     "lodash-es": "^4.17.21",
     "prettier": "^3.2.5",
-    "y-websocket": "1.5.4",
-    "yjs": "13.6.2"
+    "y-websocket": "3.0.0",
+    "yjs": "13.6.30"
   }
 }

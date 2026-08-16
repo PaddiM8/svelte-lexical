@@ -1,6 +1,14 @@
-<!-- svelte-ignore a11y-click-events-have-key-events -->
-<!-- svelte-ignore a11y-no-static-element-interactions -->
-<svg id="close" on:click viewBox="0 0 12 12">
+<script lang="ts">
+  interface Props {
+    onclick?: (event: MouseEvent) => void;
+  }
+
+  let {onclick}: Props = $props();
+</script>
+
+<!-- svelte-ignore a11y_click_events_have_key_events -->
+<!-- svelte-ignore a11y_no_static_element_interactions -->
+<svg id="close" {onclick} viewBox="0 0 12 12">
   <circle cx="6" cy="6" r="6" />
   <line x1="3" y1="3" x2="9" y2="9" />
   <line x1="9" y1="3" x2="3" y2="9" />

@@ -50,28 +50,41 @@
     selectedLine: '>',
   });
 
-  export let treeTypeButtonClassName: string;
-  export let timeTravelButtonClassName: string;
-  export let timeTravelPanelButtonClassName: string;
-  export let timeTravelPanelClassName: string;
-  export let timeTravelPanelSliderClassName: string;
-  export let viewClassName: string;
+  interface Props {
+    treeTypeButtonClassName?: string;
+    timeTravelButtonClassName?: string;
+    timeTravelPanelButtonClassName?: string;
+    timeTravelPanelClassName?: string;
+    timeTravelPanelSliderClassName?: string;
+    viewClassName?: string;
+  }
+
+  let {
+    treeTypeButtonClassName,
+    timeTravelButtonClassName,
+    timeTravelPanelButtonClassName,
+    timeTravelPanelClassName,
+    timeTravelPanelSliderClassName,
+    viewClassName,
+  }: Props = $props();
 
   const editor: LexicalEditor = getEditor();
 
-  let timeStampedEditorStates: Array<[number, EditorState]> = [];
-  let content = '';
-  let timeTravelEnabled = false;
-  let showExportDOM = false;
-  let playingIndexRef = 0;
-  let treeElementRef: HTMLElement | null = null;
-  let inputRef: HTMLInputElement | null = null;
-  let isPlaying = false;
-  let isLimited = false;
-  let showLimited = false;
-  let lastEditorStateRef: EditorState | null = null;
+  let timeStampedEditorStates: Array<[number, EditorState]> = $state([]);
+  let content = $state('');
+  let timeTravelEnabled = $state(false);
+  let showExportDOM = $state(false);
+  let playingIndexRef = $state(0);
+  let treeElementRef: HTMLElement | null = $state(null);
+  let inputRef: HTMLInputElement | null = $state(null);
+  let isPlaying = $state(false);
+  let isLimited = $state(false);
+  let showLimited = $state(false);
+  let lastEditorStateRef: EditorState | null = $state(null);
 
-  let commandsLog: ReadonlyArray<LexicalCommand<unknown> & {payload: unknown}>;
+  let commandsLog: ReadonlyArray<
+    {index: number} & LexicalCommand<unknown> & {payload: unknown}
+  > = $state([]);
 
   function generateTree(editorState: EditorState) {
     const treeText = generateContent(editor, commandsLog, showExportDOM);
@@ -86,14 +99,6 @@
     }
   }
 
-  $: {
-    const editorState = editor.getEditorState();
-    if (!showLimited && editorState._nodeMap.size > 1) {
-      content = generateContent(editor, commandsLog, showExportDOM);
-    }
-  }
-
-  $: totalEditorStates = timeStampedEditorStates.length;
   let timeoutId: ReturnType<typeof setTimeout>;
 
   function play() {
@@ -119,14 +124,6 @@
       editor.setEditorState(timeStampedEditorStates[index][1]);
       play();
     }, timeDiff);
-  }
-
-  $: if (isPlaying) {
-    play();
-  }
-
-  $: if (!isPlaying) {
-    clearInterval(timeoutId);
   }
 
   onMount(() => {
@@ -191,7 +188,9 @@
 
   function generateContent(
     editor: LexicalEditor,
-    commandsLog: ReadonlyArray<LexicalCommand<unknown> & {payload: unknown}>,
+    commandsLog: ReadonlyArray<
+      {index: number} & LexicalCommand<unknown> & {payload: unknown}
+    >,
     exportDOM: boolean,
   ): string {
     const editorState = editor.getEditorState();
@@ -217,13 +216,10 @@
         const nodeKeyDisplay = `(${nodeKey})`;
         const typeDisplay = node.getType() || '';
         const isSelected = node.isSelected();
-        const idsDisplay = isMarkNode(node)
-          ? ` id: [ ${node.getIDs().join(', ')} ] `
-          : '';
 
         res += `${isSelected ? SYMBOLS.selectedLine : ' '} ${indent.join(
           ' ',
-        )} ${nodeKeyDisplay} ${typeDisplay} ${idsDisplay} ${printNode(node)}\n`;
+        )} ${nodeKeyDisplay} ${typeDisplay} ${printNode(node)}\n`;
 
         res += printSelectedCharsLine({
           indent,
@@ -248,9 +244,9 @@
 
     res += '\n\n commands:';
 
-    if (commandsLog.length) {
-      for (const {type, payload} of commandsLog) {
-        res += `\n  └ { type: ${type}, payload: ${
+    if (commandsLog && commandsLog.length) {
+      for (const {index, type, payload} of commandsLog) {
+        res += `\n  └ ${index}. { type: ${type}, payload: ${
           payload instanceof Event ? payload.constructor.name : payload
         } }`;
       }
@@ -325,6 +321,8 @@
         .filter(Boolean)
         .join(' ')
         .trim();
+    } else if (isMarkNode(node)) {
+      return `ids: [ ${node.getIDs().join(', ')} ]`;
     } else if (isParagraphNode(node)) {
       const formatText = printTextFormatProperties(node);
       return formatText !== '' ? `{ ${formatText} }` : '';
@@ -373,6 +371,7 @@
       printFormatProperties(node),
       printDetailProperties(node),
       printModeProperties(node),
+      printStateProperties(node),
     ]
       .filter(Boolean)
       .join(', ');
@@ -383,6 +382,7 @@
       printTargetProperties(node),
       printRelProperties(node),
       printTitleProperties(node),
+      printStateProperties(node),
     ]
       .filter(Boolean)
       .join(', ');
@@ -469,6 +469,25 @@
     return str;
   }
 
+  function printStateProperties(node: LexicalNode) {
+    if (!node.__state) {
+      return false;
+    }
+    const states = [];
+    for (const [stateType, value] of node.__state.knownState.entries()) {
+      if (stateType.isEqual(value, stateType.defaultValue)) {
+        continue;
+      }
+      const textValue = JSON.stringify(stateType.unparse(value));
+      states.push(`[${stateType.key}: ${textValue}]`);
+    }
+    let str = states.join(',');
+    if (str !== '') {
+      str = 'state: ' + str;
+    }
+    return str;
+  }
+
   function printSelectedCharsLine({
     indent,
     isSelected,
@@ -523,7 +542,7 @@
     ];
     const unselectedChars = Array(start + 1).fill(' ');
     const selectedChars = Array(end - start).fill(SYMBOLS.selectedChar);
-    const paddingLength = typeDisplay.length + 3; // 2 for the spaces around + 1 for the double quote.
+    const paddingLength = typeDisplay.length + 2; // 1 for the space after + 1 for the double quote.
 
     const nodePrintSpaces = Array(nodeKeyDisplay.length + paddingLength).fill(
       ' ',
@@ -620,6 +639,22 @@
         numNonSingleWidthCharInSelection,
     ];
   }
+  $effect(() => {
+    const editorState = editor.getEditorState();
+    if (!showLimited && editorState._nodeMap.size > 1) {
+      content = generateContent(editor, commandsLog, showExportDOM);
+    }
+  });
+  let totalEditorStates = $derived(timeStampedEditorStates.length);
+  $effect(() => {
+    if (!isPlaying) {
+      clearTimeout(timeoutId);
+      return;
+    }
+
+    play();
+    return () => clearTimeout(timeoutId);
+  });
 </script>
 
 <CommandsLog bind:loggedCommands={commandsLog} />
@@ -630,7 +665,8 @@
         Detected large EditorState, this can impact debugging performance.
       </span>
       <button
-        on:click={() => {
+        type="button"
+        onclick={() => {
           showLimited = true;
           const editorState = lastEditorStateRef;
           if (editorState !== null) {
@@ -651,7 +687,7 @@
   {/if}
   {#if !showLimited}
     <button
-      on:click={() => (showExportDOM = !showExportDOM)}
+      onclick={() => (showExportDOM = !showExportDOM)}
       class={treeTypeButtonClassName}
       type="button">
       {showExportDOM ? 'Tree' : 'Export DOM'}
@@ -659,7 +695,7 @@
   {/if}
   {#if !timeTravelEnabled && (showLimited || !isLimited) && totalEditorStates > 2}
     <button
-      on:click={() => {
+      onclick={() => {
         const rootElement = editor.getRootElement();
 
         if (rootElement !== null) {
@@ -680,7 +716,7 @@
     <div class={timeTravelPanelClassName}>
       <button
         class={timeTravelPanelButtonClassName}
-        on:click={() => {
+        onclick={() => {
           if (playingIndexRef === totalEditorStates - 1) {
             playingIndexRef = 1;
           }
@@ -692,7 +728,7 @@
       <input
         class={timeTravelPanelSliderClassName}
         bind:this={inputRef}
-        on:change={(event) => {
+        onchange={(event) => {
           // @ts-ignore TS not supported in Svelte Html - https://github.com/sveltejs/svelte/issues/4701
           const editorStateIndex = Number(event.target.value);
           const timeStampedEditorState =
@@ -708,7 +744,7 @@
         max={totalEditorStates - 1} />
       <button
         class={timeTravelPanelButtonClassName}
-        on:click={() => {
+        onclick={() => {
           const rootElement = editor.getRootElement();
 
           if (rootElement !== null) {
@@ -732,3 +768,25 @@
     </div>
   {/if}
 </div>
+
+<style>
+  pre {
+    line-height: 1.1;
+    background: #222;
+    color: #fff;
+    margin: 0;
+    padding: 10px;
+    font-size: 12px;
+    overflow: auto;
+    max-height: 400px;
+  }
+
+  pre::-webkit-scrollbar {
+    background: transparent;
+    width: 10px;
+  }
+
+  pre::-webkit-scrollbar-thumb {
+    background: #999;
+  }
+</style>

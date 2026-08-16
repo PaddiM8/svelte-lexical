@@ -1,9 +1,10 @@
 <script lang="ts">
   import DropDownItem from '$lib/components/generic/dropdown/DropDownItem.svelte';
   import {getActiveEditor} from '$lib/core/composerContext.js';
-  import {FORMAT_TEXT_COMMAND} from 'lexical';
   import {getContext} from 'svelte';
   import type {Writable} from 'svelte/store';
+  import {SHORTCUTS} from '../shortcuts.js';
+  import {toggleSubscript} from '$lib/core/commands/commands.js';
 
   const activeEditor = getActiveEditor();
 
@@ -11,12 +12,15 @@
 </script>
 
 <DropDownItem
-  on:click={() => {
-    $activeEditor.dispatchCommand(FORMAT_TEXT_COMMAND, 'subscript');
+  onclick={() => {
+    toggleSubscript($activeEditor);
   }}
-  class={'item ' + ($isSubscript ? 'active dropdown-item-active' : '')}
+  class={'item wide ' + ($isSubscript ? 'active dropdown-item-active' : '')}
   title="Subscript"
   ariaLabel="Format text with a subscript">
-  <i class="icon subscript" />
-  <span class="text">Subscript</span>
+  <div class="icon-text-container">
+    <i class="icon subscript"></i>
+    <span class="text">Subscript</span>
+  </div>
+  <span class="shortcut">{SHORTCUTS.SUBSCRIPT}</span>
 </DropDownItem>

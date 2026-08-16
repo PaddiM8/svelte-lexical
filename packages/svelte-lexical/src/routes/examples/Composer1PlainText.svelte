@@ -6,11 +6,11 @@
     PlainTextPlugin,
     HistoryPlugin,
   } from '$lib/index.js';
-  import PlaygroundEditorTheme from '../themes/PlaygroundEditorTheme.js';
+  import {theme as editorTheme} from '$lib/themes/system-light-dark/index.js';
   import Composer1Toolbar from './Composer1Toolbar.svelte';
 
   const initialConfig = {
-    theme: PlaygroundEditorTheme,
+    theme: editorTheme,
     namespace: 'Playground',
     nodes: [],
     onError: (error: Error) => {
@@ -20,7 +20,7 @@
 </script>
 
 <Composer {initialConfig}>
-  <div class="editor-shell">
+  <div class="editor-shell svelte-lexical">
     <Composer1Toolbar />
     <div class="editor-container">
       <div class="editor-scroller">

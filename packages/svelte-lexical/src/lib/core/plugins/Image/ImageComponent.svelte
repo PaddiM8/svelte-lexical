@@ -1,4 +1,6 @@
-<script context="module" lang="ts">
+<!-- eslint-disable-next-line svelte/no-unused-svelte-ignore -->
+<!-- svelte-ignore state_referenced_locally -->
+<script module lang="ts">
   const imageCache = new Set();
 
   export const RIGHT_CLICK_IMAGE_COMMAND: LexicalCommand<MouseEvent> =
@@ -19,15 +21,13 @@
     COMMAND_PRIORITY_LOW,
     CLICK_COMMAND,
     DRAGSTART_COMMAND,
-    KEY_DELETE_COMMAND,
-    KEY_BACKSPACE_COMMAND,
     KEY_ESCAPE_COMMAND,
     KEY_ENTER_COMMAND,
     type BaseSelection,
   } from 'lexical';
   import {onMount} from 'svelte';
   import {mergeRegister} from '@lexical/utils';
-  import ImageResizer from '../../../components/ImageResizer.svelte';
+  import ImageResizer from './ImageResizer.svelte';
   import {$isImageNode as isImageNode} from './ImageNode.js';
   import {
     clearSelection,
@@ -38,35 +38,55 @@
   import RichTextPlugin from '../RichTextPlugin.svelte';
   import PlaceHolder from '../PlaceHolder.svelte';
   import AutoFocusPlugin from '../AutoFocusPlugin.svelte';
-  import {getImageHistoryPluginType} from '../../composerContext.js';
+  import {
+    getImageHistoryPluginType,
+    getIsEditable,
+  } from '../../composerContext.js';
+  import {writable, type Writable} from 'svelte/store';
 
-  export let src: string;
-  export let altText: string;
-  export let nodeKey: string;
-  export let width: 'inherit' | number;
-  export let height: 'inherit' | number;
-  export let maxWidth: number;
-  export let resizable: boolean;
-  export let showCaption: boolean;
-  export let caption: LexicalEditor;
-  export let captionsEnabled: boolean;
-  export let editor: LexicalEditor;
+  interface Props {
+    src: string;
+    altText: string;
+    nodeKey: string;
+    width: 'inherit' | number;
+    height: 'inherit' | number;
+    maxWidth: number;
+    resizable: boolean;
+    showCaption: boolean;
+    caption: LexicalEditor;
+    captionsEnabled: boolean;
+    editor: LexicalEditor;
+  }
 
-  $: heightCss = height === 'inherit' ? 'inherit' : height + 'px';
-  $: widthCss = width === 'inherit' ? 'inherit' : width + 'px';
+  let {
+    src,
+    altText,
+    nodeKey,
+    width,
+    height,
+    maxWidth,
+    resizable,
+    showCaption,
+    caption,
+    captionsEnabled,
+    editor,
+  }: Props = $props();
 
-  let selection: BaseSelection | null = null;
+  let selection: BaseSelection | null = $state(null);
 
-  let imageRef: HTMLImageElement | null;
-  let buttonRef: HTMLButtonElement | null;
+  let imageRef: HTMLImageElement | null = $state(null);
+  let buttonRef: Writable<HTMLButtonElement | null> = writable(null);
   let isSelected = createNodeSelectionStore(editor, nodeKey);
-  let isResizing = false;
+  let isResizing = $state(false);
   let activeEditorRef: LexicalEditor;
+  let isEditable = getIsEditable();
 
-  $: draggable = $isSelected && isNodeSelection(selection) && !isResizing;
-  $: isFocused = $isSelected || isResizing;
+  let draggable = $derived(
+    $isSelected && isNodeSelection(selection) && !isResizing,
+  );
+  let isFocused = $derived(($isSelected || isResizing) && $isEditable);
 
-  let promise = new Promise((resolve) => {
+  let promise = new Promise((resolve, reject) => {
     if (imageCache.has(src)) {
       resolve(null);
     } else {
@@ -76,25 +96,15 @@
         imageCache.add(src);
         resolve(null);
       };
+      img.onerror = () => {
+        reject(null);
+      };
     }
   });
 
-  const onDelete = (payload: KeyboardEvent) => {
-    if ($isSelected && isNodeSelection(getSelection())) {
-      const event: KeyboardEvent = payload;
-      event.preventDefault();
-      const node = getNodeByKey(nodeKey);
-      if (isImageNode(node)) {
-        node.remove();
-        return true;
-      }
-    }
-    return false;
-  };
-
   const onEnter = (event: KeyboardEvent) => {
     const latestSelection = getSelection();
-    const buttonElem = buttonRef;
+    const buttonElem = $buttonRef;
     if (
       $isSelected &&
       isNodeSelection(latestSelection) &&
@@ -116,7 +126,7 @@
   };
 
   const onEscape = (event: KeyboardEvent) => {
-    if (activeEditorRef === caption || buttonRef === event.target) {
+    if (activeEditorRef === caption || $buttonRef === event.target) {
       selection = null;
       editor.update(() => {
         $isSelected = true;
@@ -164,12 +174,14 @@
   };
 
   onMount(() => {
-    let isMounted = true;
     const rootElement = editor.getRootElement();
     const unregister = mergeRegister(
       editor.registerUpdateListener(({editorState}) => {
-        if (isMounted) {
-          selection = editorState.read(() => getSelection());
+        const updatedSelection = editorState.read(() => getSelection());
+        if (isNodeSelection(updatedSelection)) {
+          selection = updatedSelection;
+        } else {
+          selection = null;
         }
       }),
       editor.registerCommand(
@@ -203,16 +215,6 @@
         },
         COMMAND_PRIORITY_LOW,
       ),
-      editor.registerCommand(
-        KEY_DELETE_COMMAND,
-        onDelete,
-        COMMAND_PRIORITY_LOW,
-      ),
-      editor.registerCommand(
-        KEY_BACKSPACE_COMMAND,
-        onDelete,
-        COMMAND_PRIORITY_LOW,
-      ),
       editor.registerCommand(KEY_ENTER_COMMAND, onEnter, COMMAND_PRIORITY_LOW),
       editor.registerCommand(
         KEY_ESCAPE_COMMAND,
@@ -224,7 +226,6 @@
     rootElement?.addEventListener('contextmenu', onRightClick);
 
     return () => {
-      isMounted = false;
       unregister();
       rootElement?.removeEventListener('contextmenu', onRightClick);
     };
@@ -261,6 +262,68 @@
   };
 
   const historyPlugin = getImageHistoryPluginType();
+
+  let dimensions = $state<{
+    width: number;
+    height: number;
+  } | null>(null);
+
+  function isSVG(src: string): boolean {
+    return src.toLowerCase().endsWith('.svg');
+  }
+  const isSVGImage = isSVG(src);
+
+  // Set initial dimensions for SVG images
+  $effect(() => {
+    if (imageRef && isSVGImage) {
+      const {naturalWidth, naturalHeight} = imageRef;
+      dimensions = {
+        height: naturalHeight,
+        width: naturalWidth,
+      };
+    }
+  });
+
+  // Calculate final dimensions with proper scaling
+  function calculateDimensions() {
+    if (!isSVGImage) {
+      return {
+        height,
+        maxWidth,
+        width,
+      };
+    }
+
+    // Use natural dimensions if available, otherwise fallback to defaults
+    const naturalWidth = dimensions?.width || 200;
+    const naturalHeight = dimensions?.height || 200;
+
+    let finalWidth = naturalWidth;
+    let finalHeight = naturalHeight;
+
+    // Scale down if width exceeds maxWidth while maintaining aspect ratio
+    if (finalWidth > maxWidth) {
+      const scale = maxWidth / finalWidth;
+      finalWidth = maxWidth;
+      finalHeight = Math.round(finalHeight * scale);
+    }
+
+    // Scale down if height exceeds maxHeight while maintaining aspect ratio
+    const maxHeight = 500;
+    if (finalHeight > maxHeight) {
+      const scale = maxHeight / finalHeight;
+      finalHeight = maxHeight;
+      finalWidth = Math.round(finalWidth * scale);
+    }
+
+    return {
+      height: finalHeight,
+      maxWidth,
+      width: finalWidth,
+    };
+  }
+
+  const imageStyle = $derived.by(calculateDimensions);
 </script>
 
 <div {draggable}>
@@ -273,7 +336,27 @@
       {src}
       alt={altText}
       bind:this={imageRef}
-      style="height:{heightCss};max-width:{maxWidth}px;width:{widthCss};"
+      style="height:{imageStyle.height === 'inherit'
+        ? 'inherit'
+        : imageStyle.height +
+          'px'};max-width:{maxWidth}px;width:{imageStyle.width === 'inherit'
+        ? 'inherit'
+        : imageStyle.width + 'px'};"
+      draggable="false"
+      onload={(e) => {
+        if (isSVGImage) {
+          const img = e.currentTarget as HTMLImageElement;
+          dimensions = {
+            height: img.naturalHeight,
+            width: img.naturalWidth,
+          };
+        }
+      }} />
+  {:catch _}
+    <img
+      src="/images/image-broken.svg"
+      alt="broken link"
+      style="height: 200px; width: 200px; opacity: 0.2;"
       draggable="false" />
   {/await}
 </div>
@@ -290,9 +373,7 @@
       {:else}
         <SharedHistoryPlugin />
       {/if} -->
-      <svelte:component
-        this={historyPlugin.componentType}
-        {...historyPlugin.props} />
+      <historyPlugin.componentType {...historyPlugin.props} />
 
       <RichTextPlugin />
       <ContentEditable className="ImageNode__contentEditable" />

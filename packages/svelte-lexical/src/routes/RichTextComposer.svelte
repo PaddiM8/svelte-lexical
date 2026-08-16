@@ -25,8 +25,12 @@
     AutoLinkPlugin,
     CodeNode,
     CodeHighlightNode,
-    CodeHighlightPlugin,
+    CodeHighlightPrismPlugin,
     CodeActionMenuPlugin,
+    ColumnLayoutPlugin,
+    TreeViewPlugin,
+    YouTubeNode,
+    TweetNode,
   } from '$lib/index.js';
   import {
     HeadingNode,
@@ -35,8 +39,10 @@
     ListItemNode,
     HorizontalRuleNode,
     ImageNode,
+    LayoutContainerNode,
+    LayoutItemNode,
   } from '$lib/index.js';
-  import PlaygroundEditorTheme from './themes/PlaygroundEditorTheme.js';
+  import {theme} from '$lib/themes/system-light-dark/index.js';
   import {
     $getRoot as getRoot,
     $createTextNode as createTextNode,
@@ -44,12 +50,23 @@
   } from '$lib/index.js';
   import RichTextToolbar from './RichTextToolbar.svelte';
   import {onMount} from 'svelte';
+  import TablePlugin from '$lib/core/plugins/Table/TablePlugin.svelte';
+  import {TableCellNode, TableNode, TableRowNode} from '@lexical/table';
+  import TableHoverActionPlugin from '$lib/core/plugins/Table/TableHoverActionPlugin.svelte';
+  import TableActionMenuPlugin from '$lib/core/plugins/Table/TableActionMenuPlugin.svelte';
+  import TableCellResizerPlugin from '$lib/core/plugins/Table/TableCellResizerPlugin.svelte';
+  import YoutubePlugin from '$lib/core/plugins/youtube/YoutubePlugin.svelte';
+  import TwitterPlugin from '$lib/core/plugins/twitter/TwitterPlugin.svelte';
+  import BlueskyPlugin from '$lib/core/plugins/bluesky/BlueskyPlugin.svelte';
+  import {BlueskyNode} from '$lib/core/plugins/bluesky/BlueskyNode.js';
+  import TabIndentationPlugin from '$lib/core/plugins/TabIndentationPlugin.svelte';
+  import ComponentPickerMenuPlugin from '$lib/core/plugins/ComponentPicker/ComponentPickerMenuPlugin.svelte';
 
-  let isSmallWidthViewport = true;
-  let editorDiv;
+  let isSmallWidthViewport = $state(true);
+  let editorDiv: HTMLDivElement | undefined = $state();
 
   const initialConfig = {
-    theme: PlaygroundEditorTheme,
+    theme: theme,
     namespace: 'pg_sveltekit',
     nodes: [
       HeadingNode,
@@ -62,6 +79,14 @@
       AutoLinkNode,
       CodeNode,
       CodeHighlightNode,
+      LayoutContainerNode,
+      LayoutItemNode,
+      TableNode,
+      TableCellNode,
+      TableRowNode,
+      YouTubeNode,
+      TweetNode,
+      BlueskyNode,
     ],
     onError: (error: Error) => {
       throw error;
@@ -104,9 +129,9 @@
 </script>
 
 <Composer {initialConfig}>
-  <div class="editor-shell">
+  <div class="editor-shell svelte-lexical">
     <RichTextToolbar />
-    <div class="editor-container">
+    <div class="editor-container tree-view">
       <div class="editor-scroller">
         <div class="editor" bind:this={editorDiv}>
           <ContentEditable />
@@ -118,9 +143,12 @@
       <CheckListPlugin />
       <HorizontalRulePlugin />
       <ImagePlugin captionsEnabled={false} />
-      <AutoLinkPlugin />
-      <LinkPlugin {validateUrl} />
-      <CodeHighlightPlugin />
+      <AutoLinkPlugin
+        attributes={{target: '_blank', rel: 'noopener noreferrer nofollow'}} />
+      <LinkPlugin
+        {validateUrl}
+        attributes={{target: '_blank', rel: 'noopener noreferrer nofollow'}} />
+      <CodeHighlightPrismPlugin />
       {#if !isSmallWidthViewport}
         <FloatingLinkEditorPlugin anchorElem={editorDiv} />
         <CodeActionMenuPlugin anchorElem={editorDiv} />
@@ -134,8 +162,19 @@
           CHECK_LIST,
           LINK,
         ]} />
+      <ColumnLayoutPlugin />
+      <TablePlugin hasHorizontalScroll={true} />
+      <TableHoverActionPlugin anchorElem={editorDiv} />
+      <TableCellResizerPlugin />
+      <TableActionMenuPlugin anchorElem={editorDiv} cellMerge={true} />
+      <YoutubePlugin />
+      <TwitterPlugin />
+      <BlueskyPlugin />
+      <TabIndentationPlugin />
+      <ComponentPickerMenuPlugin />
 
       <ActionBar />
     </div>
+    <TreeViewPlugin />
   </div>
 </Composer>

@@ -4,13 +4,16 @@
   import StateStoreRichTextUpdator from './StateStoreRichTextUpdator.svelte';
   import {setContext} from 'svelte';
   import {getEditor} from '$lib/core/composerContext.js';
-  import {onMount} from 'svelte';
-  import type {NodeKey} from 'lexical';
+  import type {LexicalEditor, NodeKey} from 'lexical';
+  interface Props {
+    children?: import('svelte').Snippet<
+      [{editor: LexicalEditor; activeEditor: LexicalEditor; blockType: string}]
+    >;
+  }
+
+  let {children}: Props = $props();
 
   const editor = getEditor();
-
-  const isEditable = writable(editor.isEditable());
-  setContext('isEditable', isEditable);
 
   const activeEditor = writable(editor);
   setContext('activeEditor', activeEditor);
@@ -34,16 +37,16 @@
   setContext('bgColor', writable('#fff'));
   setContext('isRTL', writable(false));
   setContext('codeLanguage', writable(''));
+  setContext('codeTheme', writable('one-light'));
   setContext('isLink', writable(false));
-
-  onMount(() => {
-    return editor.registerEditableListener((editable) => {
-      $isEditable = editable;
-    });
-  });
+  setContext('isImageCaption', writable(false));
 </script>
 
 <StateStoreRichTextUpdator />
 <div class="toolbar">
-  <slot {editor} activeEditor={$activeEditor} blockType={$blockType} />
+  {@render children?.({
+    editor,
+    activeEditor: $activeEditor,
+    blockType: $blockType,
+  })}
 </div>

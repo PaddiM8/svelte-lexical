@@ -1,5 +1,7 @@
+<!-- eslint-disable-next-line svelte/no-unused-svelte-ignore -->
+<!-- svelte-ignore state_referenced_locally -->
 <script lang="ts">
-  import type {Binding, Provider} from '@lexical/yjs';
+  import type {Binding, Provider, SyncCursorPositionsFn} from '@lexical/yjs';
   import type {LexicalEditor} from 'lexical';
 
   import {mergeRegister} from '@lexical/utils';
@@ -16,23 +18,43 @@
     $getRoot as getRoot,
     $getSelection as getSelection,
     COMMAND_PRIORITY_EDITOR,
+    HISTORY_MERGE_TAG,
+    SKIP_COLLAB_TAG,
   } from 'lexical';
   import {UndoManager, type Doc, type Transaction, type YEvent} from 'yjs';
 
   import type {InitialEditorStateType} from '../../initializeEditor.js';
   import {onMount} from 'svelte';
 
-  export let editor: LexicalEditor;
-  export let id: string;
-  export let provider: Provider;
-  export let binding: Binding;
-  export let docMap: Map<string, Doc>;
-  export let name: string;
-  export let color: string;
-  export let shouldBootstrap: boolean;
-  export let cursorsContainerRef: HTMLElement | null = null;
-  export let initialEditorState: InitialEditorStateType | null = null;
-  export let awarenessData: object | undefined = undefined;
+  interface Props {
+    editor: LexicalEditor;
+    id: string;
+    provider: Provider;
+    binding: Binding;
+    docMap: Map<string, Doc>;
+    name: string;
+    color: string;
+    shouldBootstrap: boolean;
+    cursorsContainerRef?: HTMLElement | null;
+    initialEditorState?: InitialEditorStateType | null;
+    awarenessData?: object | undefined;
+    syncCursorPositionsFn?: SyncCursorPositionsFn;
+  }
+
+  let {
+    editor,
+    id,
+    provider,
+    binding = $bindable(),
+    docMap,
+    name,
+    color,
+    shouldBootstrap,
+    cursorsContainerRef = null,
+    initialEditorState = null,
+    awarenessData = undefined,
+    syncCursorPositionsFn = syncCursorPositions,
+  }: Props = $props();
 
   let isReloadingDoc = false;
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -41,13 +63,13 @@
   //const binding = createBinding(editor, provider, id, doc, docMap);
 
   const connect = () => {
-    provider.connect();
+    return provider.connect();
   };
 
   const disconnect = () => {
     try {
       provider.disconnect();
-    } catch (e) {
+    } catch {
       // Do nothing
     }
   };
@@ -75,7 +97,7 @@
     };
 
     const onAwarenessUpdate = () => {
-      syncCursorPositions(binding, provider);
+      syncCursorPositionsFn(binding, provider);
     };
 
     const onYjsTreeChanges = (
@@ -87,7 +109,13 @@
       const origin = transaction.origin;
       if (origin !== binding) {
         const isFromUndoManger = origin instanceof UndoManager;
-        syncYjsChangesToLexical(binding, provider, events, isFromUndoManger);
+        syncYjsChangesToLexical(
+          binding,
+          provider,
+          events,
+          isFromUndoManger,
+          syncCursorPositionsFn,
+        );
       }
     };
 
@@ -110,7 +138,7 @@
     provider.on('status', onStatus);
     provider.on('sync', onSync);
     awareness.on('update', onAwarenessUpdate);
-    // This updates the local editor state when we recieve updates from other clients
+    // This updates the local editor state when we receive updates from other clients
     root.getSharedType().observeDeep(onYjsTreeChanges);
     const removeListener = editor.registerUpdateListener(
       ({
@@ -121,7 +149,7 @@
         normalizedNodes,
         tags,
       }) => {
-        if (tags.has('skip-collab') === false) {
+        if (tags.has(SKIP_COLLAB_TAG) === false) {
           syncLexicalUpdateToYjs(
             binding,
             provider,
@@ -135,11 +163,22 @@
         }
       },
     );
-    connect();
+    const connectionPromise = connect();
 
     return () => {
       if (isReloadingDoc === false) {
-        disconnect();
+        if (connectionPromise) {
+          connectionPromise.then(disconnect);
+        } else {
+          // Workaround for race condition in StrictMode. It's possible there
+          // is a different race for the above case where connect returns a
+          // promise, but we don't have an example of that in-repo.
+          // It's possible that there is a similar issue with
+          // TOGGLE_CONNECT_COMMAND below when the provider connect returns a
+          // promise.
+          // https://github.com/facebook/lexical/issues/6640
+          disconnect();
+        }
       }
 
       provider.off('sync', onSync);
@@ -172,18 +211,16 @@
       editor.registerCommand(
         TOGGLE_CONNECT_COMMAND,
         (payload) => {
-          if (connect !== undefined && disconnect !== undefined) {
-            const shouldConnect = payload;
+          const shouldConnect = payload;
 
-            if (shouldConnect) {
-              // eslint-disable-next-line no-console
-              console.log('Collaboration connected!');
-              connect();
-            } else {
-              // eslint-disable-next-line no-console
-              console.log('Collaboration disconnected!');
-              disconnect();
-            }
+          if (shouldConnect) {
+            // eslint-disable-next-line no-console
+            console.log('Collaboration connected!');
+            connect();
+          } else {
+            // eslint-disable-next-line no-console
+            console.log('Collaboration disconnected!');
+            disconnect();
           }
 
           return true;
@@ -208,13 +245,13 @@
                 const parsedEditorState =
                   editor.parseEditorState(initialEditorState);
                 editor.setEditorState(parsedEditorState, {
-                  tag: 'history-merge',
+                  tag: HISTORY_MERGE_TAG,
                 });
                 break;
               }
               case 'object': {
                 editor.setEditorState(initialEditorState, {
-                  tag: 'history-merge',
+                  tag: HISTORY_MERGE_TAG,
                 });
                 break;
               }
@@ -226,7 +263,7 @@
                       initialEditorState(editor);
                     }
                   },
-                  {tag: 'history-merge'},
+                  {tag: HISTORY_MERGE_TAG},
                 );
                 break;
               }
@@ -247,7 +284,7 @@
         }
       },
       {
-        tag: 'history-merge',
+        tag: HISTORY_MERGE_TAG,
       },
     );
   }
@@ -261,7 +298,7 @@
         root.select();
       },
       {
-        tag: 'skip-collab',
+        tag: SKIP_COLLAB_TAG,
       },
     );
 

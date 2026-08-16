@@ -1,4 +1,4 @@
-<script context="module" lang="ts">
+<script module lang="ts">
   declare global {
     interface DragEvent {
       rangeOffset?: number;
@@ -9,9 +9,6 @@
   export const INSERT_IMAGE_COMMAND: LexicalCommand<InsertImagePayload> =
     createCommand();
   export type InsertImagePayload = ImagePayload;
-
-  const getDOMSelection = (targetWindow: Window | null): Selection | null =>
-    CAN_USE_DOM ? (targetWindow || window).getSelection() : null;
 </script>
 
 <script lang="ts">
@@ -33,13 +30,15 @@
     PASTE_COMMAND,
     type LexicalCommand,
     type LexicalEditor,
+    getDOMSelectionFromTarget,
   } from 'lexical';
   import {
     $wrapNodeInElement as wrapNodeInElement,
+    isHTMLElement,
     mergeRegister,
   } from '@lexical/utils';
 
-  import {onMount, createEventDispatcher} from 'svelte';
+  import {onMount, createEventDispatcher, type Snippet} from 'svelte';
   import {
     $createImageNode as createImageNode,
     $isImageNode as isImageNode,
@@ -47,7 +46,6 @@
     type ImagePayload,
   } from './ImageNode.js';
   import {getEditor} from '../../composerContext.js';
-  import {CAN_USE_DOM} from '../../../environment/canUseDOM.js';
 
   const editor: LexicalEditor = getEditor();
   const dispatcher = createEventDispatcher();
@@ -56,7 +54,12 @@
     'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
   let img: HTMLImageElement;
 
-  export let captionsEnabled = true;
+  interface Props {
+    captionsEnabled?: boolean;
+    children?: Snippet;
+  }
+
+  let {captionsEnabled = true, children}: Props = $props();
 
   onMount(() => {
     if (!editor.hasNodes([ImageNode])) {
@@ -238,24 +241,16 @@
   function canDropImage(event: DragEvent): boolean {
     const target = event.target;
     return !!(
-      target &&
-      target instanceof HTMLElement &&
+      isHTMLElement(target) &&
       !target.closest('code, span.editor-image') &&
-      target.parentElement &&
+      isHTMLElement(target.parentElement) &&
       target.parentElement.closest('div.ContentEditable__root')
     );
   }
 
   function getDragSelection(event: DragEvent): Range | null | undefined {
     let range;
-    const target = event.target as null | Element | Document;
-    const targetWindow =
-      target == null
-        ? null
-        : target.nodeType === 9
-          ? (target as Document).defaultView
-          : (target as Element).ownerDocument.defaultView;
-    const domSelection = getDOMSelection(targetWindow);
+    const domSelection = getDOMSelectionFromTarget(event.target);
     if (document.caretRangeFromPoint) {
       range = document.caretRangeFromPoint(event.clientX, event.clientY);
     } else if (event.rangeParent && domSelection !== null) {
@@ -270,4 +265,4 @@
 </script>
 
 <!--for ImageComponent history plugin -->
-<slot />
+{@render children?.()}

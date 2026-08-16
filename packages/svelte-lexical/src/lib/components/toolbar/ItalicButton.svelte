@@ -1,9 +1,9 @@
 <script lang="ts">
-  import {FORMAT_TEXT_COMMAND} from 'lexical';
   import {getActiveEditor, getIsEditable} from '$lib/core/composerContext.js';
   import {getContext} from 'svelte';
   import type {Writable} from 'svelte/store';
-  import {IS_APPLE} from '@lexical/utils';
+  import {SHORTCUTS} from './shortcuts.js';
+  import {toggleItalic} from '$lib/core/commands/commands.js';
 
   const activeEditor = getActiveEditor();
   const isEditable = getIsEditable();
@@ -12,15 +12,13 @@
 </script>
 
 <button
-  disabled={!isEditable}
-  on:click={() => {
-    $activeEditor.dispatchCommand(FORMAT_TEXT_COMMAND, 'italic');
+  disabled={!$isEditable}
+  onclick={() => {
+    toggleItalic($activeEditor);
   }}
   class={'toolbar-item spaced ' + ($isItalic ? 'active' : '')}
-  title={IS_APPLE ? 'Italic (⌘I)' : 'Italic (Ctrl+I)'}
+  title={`Italic (${SHORTCUTS.ITALIC})`}
   type="button"
-  aria-label={`Format text as italics. Shortcut: ${
-    IS_APPLE ? '⌘I' : 'Ctrl+I'
-  }`}>
-  <i class="format italic" />
+  aria-label={`Format text as italics. Shortcut: ${SHORTCUTS.ITALIC}`}>
+  <i class="format italic"></i>
 </button>

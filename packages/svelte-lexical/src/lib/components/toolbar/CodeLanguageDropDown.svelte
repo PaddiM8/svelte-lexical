@@ -49,12 +49,13 @@
   buttonClassName="toolbar-item code-language"
   buttonLabel={getLanguageFriendlyName($codeLanguage)}
   buttonAriaLabel="Select language">
+  <!-- eslint-disable-next-line svelte/require-each-key -->
   {#each CODE_LANGUAGE_OPTIONS as [value, name]}
     <DropDownItem
       class={`item ${
         value === $codeLanguage ? 'active dropdown-item-active' : ''
       }`}
-      on:click={() => onCodeLanguageSelect(value)}>
+      onclick={() => onCodeLanguageSelect(value)}>
       <span class="text">{name}</span>
     </DropDownItem>
   {/each}

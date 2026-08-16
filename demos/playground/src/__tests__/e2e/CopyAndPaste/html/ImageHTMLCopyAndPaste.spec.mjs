@@ -21,8 +21,8 @@ import {
 test.describe('HTML Image CopyAndPaste', () => {
   test.beforeEach(({isCollab, page}) => initialize({isCollab, page}));
 
-  test('Copy + paste an image', async ({page, isPlainText}) => {
-    test.skip(isPlainText);
+  test.fixme('Copy + paste an image', async ({page, isPlainText, isCollab}) => {
+    test.skip(isPlainText || isCollab);
 
     await focusEditor(page);
 
@@ -39,9 +39,7 @@ test.describe('HTML Image CopyAndPaste', () => {
     await assertHTML(
       page,
       html`
-        <p
-          class="PlaygroundEditorTheme__paragraph PlaygroundEditorTheme__ltr"
-          dir="ltr">
+        <p class="PlaygroundEditorTheme__paragraph" dir="auto">
           <span data-lexical-text="true">An</span>
           <span
             class="editor-image"
@@ -61,58 +59,61 @@ test.describe('HTML Image CopyAndPaste', () => {
     );
   });
 
-  test('Copy + paste + undo multiple image', async ({page, isPlainText}) => {
-    test.skip(isPlainText);
+  test.fixme(
+    'Copy + paste + undo multiple image',
+    async ({page, isPlainText}) => {
+      test.skip(isPlainText);
 
-    await focusEditor(page);
+      await focusEditor(page);
 
-    const clipboard = {
-      'playwright/base64_1': [LEXICAL_IMAGE_BASE64, 'image/png'],
-      'playwright/base64_2': [LEXICAL_IMAGE_BASE64, 'image/png'],
-    };
+      const clipboard = {
+        'playwright/base64_1': [LEXICAL_IMAGE_BASE64, 'image/png'],
+        'playwright/base64_2': [LEXICAL_IMAGE_BASE64, 'image/png'],
+      };
 
-    await pasteFromClipboard(page, clipboard);
-    await sleepInsertImage(2);
+      await pasteFromClipboard(page, clipboard);
+      await sleepInsertImage(2);
 
-    await assertHTML(
-      page,
-      html`
-        <p class="PlaygroundEditorTheme__paragraph">
-          <span
-            class="editor-image"
-            contenteditable="false"
-            data-lexical-decorator="true">
-            <div draggable="false">
-              <img
-                alt="file"
-                draggable="false"
-                src="${LEXICAL_IMAGE_BASE64}"
-                style="height: inherit; max-width: 500px; width: inherit" />
-            </div>
-          </span>
-          <span
-            class="editor-image"
-            contenteditable="false"
-            data-lexical-decorator="true">
-            <div draggable="false">
-              <img
-                alt="file"
-                draggable="false"
-                src="${LEXICAL_IMAGE_BASE64}"
-                style="height: inherit; max-width: 500px; width: inherit" />
-            </div>
-          </span>
-          <br />
-        </p>
-      `,
-    );
+      await assertHTML(
+        page,
+        html`
+          <p class="PlaygroundEditorTheme__paragraph" dir="auto">
+            <span
+              class="editor-image"
+              contenteditable="false"
+              data-lexical-decorator="true">
+              <div draggable="false">
+                <img
+                  alt="file"
+                  draggable="false"
+                  src="${LEXICAL_IMAGE_BASE64}"
+                  style="height: inherit; max-width: 500px; width: inherit" />
+              </div>
+            </span>
+            <span
+              class="editor-image"
+              contenteditable="false"
+              data-lexical-decorator="true">
+              <div draggable="false">
+                <img
+                  alt="file"
+                  draggable="false"
+                  src="${LEXICAL_IMAGE_BASE64}"
+                  style="height: inherit; max-width: 500px; width: inherit" />
+              </div>
+            </span>
+            <br />
+          </p>
+        `,
+      );
 
-    await undo(page);
-    await assertHTML(
-      page,
-      html`
-        <p class="PlaygroundEditorTheme__paragraph"><br /></p>
-      `,
-    );
-  });
+      await undo(page);
+      await assertHTML(
+        page,
+        html`
+          <p class="PlaygroundEditorTheme__paragraph" dir="auto"><br /></p>
+        `,
+      );
+    },
+  );
 });

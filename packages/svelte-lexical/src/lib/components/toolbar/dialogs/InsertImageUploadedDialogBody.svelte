@@ -1,16 +1,19 @@
 <script lang="ts">
-  import {createEventDispatcher} from 'svelte';
   import {getActiveEditor} from '$lib/core/composerContext.js';
   import TextInput from '../../generic/input/TextInput.svelte';
   import {INSERT_IMAGE_COMMAND} from '$lib/core/plugins/Image/ImagePlugin.svelte';
   import FileInput from '../../generic/input/FileInput.svelte';
 
   const activeEditor = getActiveEditor();
-  const dispatch = createEventDispatcher();
+  interface Props {
+    onconfirm?: () => void;
+  }
 
-  let src = '';
-  let altText = '';
-  $: isDisabled = src === '';
+  let {onconfirm}: Props = $props();
+
+  let src = $state('');
+  let altText = $state('');
+  let isDisabled = $derived(src === '');
 
   function loadImage(files: FileList | null) {
     const reader = new FileReader();
@@ -39,14 +42,15 @@
       placeholder="Descriptive alternative text"
       bind:value={altText}
       dataTestId="image-modal-alt-text-input" />
-    <div class="ToolbarPlugin__dialogActions">
+    <div class="DialogActions">
       <button
+        type="button"
         data-test-id="image-modal-file-upload-btn"
         disabled={isDisabled}
         class="Button__root"
-        on:click={() => {
+        onclick={() => {
           $activeEditor.dispatchCommand(INSERT_IMAGE_COMMAND, {altText, src});
-          dispatch('confirm');
+          onconfirm?.();
         }}>
         Confirm
       </button>

@@ -1,11 +1,11 @@
 <script>
   import {RichTextComposer} from 'svelte-lexical';
-  import PlaygroundEditorTheme from './themes/PlaygroundEditorTheme';
+  import {theme as editorTheme} from 'svelte-lexical/dist/themes/default';
 </script>
 
 <main>
   <div class="header">
-    <img src="src/images/logo.svg" alt="Svelte Lexical!" />
+    <img src="/images/logo.svg" alt="Svelte Lexical!" />
     <p>
       This Rich Text Editor is build with <a
         href="https://github.com/umaranis/svelte-lexical/">
@@ -14,7 +14,7 @@
     </p>
   </div>
 
-  <RichTextComposer theme={PlaygroundEditorTheme} />
+  <RichTextComposer theme={editorTheme} />
 </main>
 
 <style>

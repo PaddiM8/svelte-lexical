@@ -17,6 +17,7 @@ import {
   dragMouse,
   evaluate,
   focusEditor,
+  getProjectRootPath,
   html,
   initialize,
   insertSampleImage,
@@ -30,9 +31,12 @@ import {
   test,
   waitForSelector,
 } from '../utils/index.mjs';
+import path from 'node:path';
 
 test.describe('Images', () => {
-  test.beforeEach(({isCollab, page}) => initialize({isCollab, page}));
+  test.beforeEach(({isCollab, page, browserName}) =>
+    initialize({isCollab, page, browserName}),
+  );
   test(`Can create a decorator and move selection around it`, async ({
     page,
     isPlainText,
@@ -48,16 +52,16 @@ test.describe('Images', () => {
     await assertHTML(
       page,
       html`
-        <p class="PlaygroundEditorTheme__paragraph">
+        <p class="PlaygroundEditorTheme__paragraph" dir="auto">
           <span
             class="editor-image"
             contenteditable="false"
             data-lexical-decorator="true">
             <div draggable="false">
               <img
-                src="${SAMPLE_IMAGE_URL}"
                 alt="Yellow flower in tilt shift lens"
                 draggable="false"
+                src="${SAMPLE_IMAGE_URL}"
                 style="height: inherit; max-width: 500px; width: inherit;" />
             </div>
           </span>
@@ -98,7 +102,7 @@ test.describe('Images', () => {
     await assertHTML(
       page,
       html`
-        <p class="PlaygroundEditorTheme__paragraph"><br /></p>
+        <p class="PlaygroundEditorTheme__paragraph" dir="auto"><br /></p>
       `,
     );
     await assertSelection(page, {
@@ -116,29 +120,55 @@ test.describe('Images', () => {
       await assertHTML(
         page,
         html`
-          <p class="PlaygroundEditorTheme__paragraph">
+          <p class="PlaygroundEditorTheme__paragraph" dir="auto">
             <span
               class="editor-image"
               contenteditable="false"
               data-lexical-decorator="true">
               <div draggable="true">
                 <img
-                  src="${SAMPLE_IMAGE_URL}"
+                  class="focused draggable"
                   alt="Yellow flower in tilt shift lens"
                   draggable="false"
-                  style="height: inherit; max-width: 500px; width: inherit;"
-                  class="focused draggable" />
+                  src="${SAMPLE_IMAGE_URL}"
+                  style="height: inherit; max-width: 500px; width: inherit;" />
               </div>
               <div>
-                <button class="image-caption-button">Add Caption</button>
-                <div class="image-resizer image-resizer-n"></div>
-                <div class="image-resizer image-resizer-ne"></div>
-                <div class="image-resizer image-resizer-e"></div>
-                <div class="image-resizer image-resizer-se"></div>
-                <div class="image-resizer image-resizer-s"></div>
-                <div class="image-resizer image-resizer-sw"></div>
-                <div class="image-resizer image-resizer-w"></div>
-                <div class="image-resizer image-resizer-nw"></div>
+                <button class="image-caption-button" type="button">
+                  Add Caption
+                </button>
+                <div
+                  class="image-resizer image-resizer-n"
+                  role="button"
+                  tabindex="-1"></div>
+                <div
+                  class="image-resizer image-resizer-ne"
+                  role="button"
+                  tabindex="-1"></div>
+                <div
+                  class="image-resizer image-resizer-e"
+                  role="button"
+                  tabindex="-1"></div>
+                <div
+                  class="image-resizer image-resizer-se"
+                  role="button"
+                  tabindex="-1"></div>
+                <div
+                  class="image-resizer image-resizer-s"
+                  role="button"
+                  tabindex="-1"></div>
+                <div
+                  class="image-resizer image-resizer-sw"
+                  role="button"
+                  tabindex="-1"></div>
+                <div
+                  class="image-resizer image-resizer-w"
+                  role="button"
+                  tabindex="-1"></div>
+                <div
+                  class="image-resizer image-resizer-nw"
+                  role="button"
+                  tabindex="-1"></div>
               </div>
             </span>
             <br />
@@ -153,7 +183,7 @@ test.describe('Images', () => {
     await assertHTML(
       page,
       html`
-        <p class="PlaygroundEditorTheme__paragraph"><br /></p>
+        <p class="PlaygroundEditorTheme__paragraph" dir="auto"><br /></p>
       `,
     );
 
@@ -168,16 +198,16 @@ test.describe('Images', () => {
     await assertHTML(
       page,
       html`
-        <p class="PlaygroundEditorTheme__paragraph">
+        <p class="PlaygroundEditorTheme__paragraph" dir="auto">
           <span
             class="editor-image"
             contenteditable="false"
             data-lexical-decorator="true">
             <div draggable="false">
               <img
-                src="${SAMPLE_IMAGE_URL}"
                 alt="Yellow flower in tilt shift lens"
                 draggable="false"
+                src="${SAMPLE_IMAGE_URL}"
                 style="height: inherit; max-width: 500px; width: inherit;" />
             </div>
           </span>
@@ -200,7 +230,7 @@ test.describe('Images', () => {
     await assertHTML(
       page,
       html`
-        <p class="PlaygroundEditorTheme__paragraph"><br /></p>
+        <p class="PlaygroundEditorTheme__paragraph" dir="auto"><br /></p>
       `,
     );
 
@@ -230,16 +260,16 @@ test.describe('Images', () => {
     await assertHTML(
       page,
       html`
-        <p class="PlaygroundEditorTheme__paragraph">
+        <p class="PlaygroundEditorTheme__paragraph" dir="auto">
           <span
             class="editor-image"
             contenteditable="false"
             data-lexical-decorator="true">
             <div draggable="false">
               <img
-                src="${SAMPLE_IMAGE_URL}"
                 alt="Yellow flower in tilt shift lens"
                 draggable="false"
+                src="${SAMPLE_IMAGE_URL}"
                 style="height: inherit; max-width: 500px; width: inherit;" />
             </div>
           </span>
@@ -249,37 +279,9 @@ test.describe('Images', () => {
             data-lexical-decorator="true">
             <div draggable="false">
               <img
-                src="${SAMPLE_IMAGE_URL}"
                 alt="Yellow flower in tilt shift lens"
                 draggable="false"
-                style="height: inherit; max-width: 500px; width: inherit;" />
-            </div>
-          </span>
-          <br />
-        </p>
-      `,
-    );
-    await assertSelection(page, {
-      anchorOffset: 0,
-      anchorPath: [0],
-      focusOffset: 0,
-      focusPath: [0],
-    });
-
-    await page.keyboard.press('Delete');
-    await assertHTML(
-      page,
-      html`
-        <p class="PlaygroundEditorTheme__paragraph">
-          <span
-            class="editor-image"
-            contenteditable="false"
-            data-lexical-decorator="true">
-            <div draggable="false">
-              <img
                 src="${SAMPLE_IMAGE_URL}"
-                alt="Yellow flower in tilt shift lens"
-                draggable="false"
                 style="height: inherit; max-width: 500px; width: inherit;" />
             </div>
           </span>
@@ -298,7 +300,35 @@ test.describe('Images', () => {
     await assertHTML(
       page,
       html`
-        <p class="PlaygroundEditorTheme__paragraph"><br /></p>
+        <p class="PlaygroundEditorTheme__paragraph" dir="auto">
+          <span
+            class="editor-image"
+            contenteditable="false"
+            data-lexical-decorator="true">
+            <div draggable="false">
+              <img
+                alt="Yellow flower in tilt shift lens"
+                draggable="false"
+                src="${SAMPLE_IMAGE_URL}"
+                style="height: inherit; max-width: 500px; width: inherit;" />
+            </div>
+          </span>
+          <br />
+        </p>
+      `,
+    );
+    await assertSelection(page, {
+      anchorOffset: 0,
+      anchorPath: [0],
+      focusOffset: 0,
+      focusPath: [0],
+    });
+
+    await page.keyboard.press('Delete');
+    await assertHTML(
+      page,
+      html`
+        <p class="PlaygroundEditorTheme__paragraph" dir="auto"><br /></p>
       `,
     );
     await assertSelection(page, {
@@ -318,9 +348,7 @@ test.describe('Images', () => {
     await assertHTML(
       page,
       html`
-        <p
-          class="PlaygroundEditorTheme__paragraph PlaygroundEditorTheme__ltr"
-          dir="ltr">
+        <p class="PlaygroundEditorTheme__paragraph" dir="auto">
           <span data-lexical-text="true">Test</span>
           <span
             class="editor-image"
@@ -328,9 +356,9 @@ test.describe('Images', () => {
             data-lexical-decorator="true">
             <div draggable="false">
               <img
-                src="${SAMPLE_IMAGE_URL}"
                 alt="Yellow flower in tilt shift lens"
                 draggable="false"
+                src="${SAMPLE_IMAGE_URL}"
                 style="height: inherit; max-width: 500px; width: inherit;" />
             </div>
           </span>
@@ -340,9 +368,9 @@ test.describe('Images', () => {
             data-lexical-decorator="true">
             <div draggable="false">
               <img
-                src="${SAMPLE_IMAGE_URL}"
                 alt="Yellow flower in tilt shift lens"
                 draggable="false"
+                src="${SAMPLE_IMAGE_URL}"
                 style="height: inherit; max-width: 500px; width: inherit;" />
             </div>
           </span>
@@ -360,9 +388,7 @@ test.describe('Images', () => {
     await assertHTML(
       page,
       html`
-        <p
-          class="PlaygroundEditorTheme__paragraph PlaygroundEditorTheme__ltr"
-          dir="ltr">
+        <p class="PlaygroundEditorTheme__paragraph" dir="auto">
           <span data-lexical-text="true">Test</span>
           <span
             class="editor-image"
@@ -370,9 +396,9 @@ test.describe('Images', () => {
             data-lexical-decorator="true">
             <div draggable="false">
               <img
-                src="${SAMPLE_IMAGE_URL}"
                 alt="Yellow flower in tilt shift lens"
                 draggable="false"
+                src="${SAMPLE_IMAGE_URL}"
                 style="height: inherit; max-width: 500px; width: inherit;" />
             </div>
           </span>
@@ -388,8 +414,12 @@ test.describe('Images', () => {
     });
   });
 
-  test('Can add images by arbitrary URL', async ({page, isPlainText}) => {
-    test.skip(isPlainText);
+  test('Can add images by arbitrary URL', async ({
+    page,
+    isPlainText,
+    isCollab,
+  }) => {
+    test.skip(isPlainText || isCollab, 'Skip in plain text and collab mode');
 
     await focusEditor(page);
 
@@ -401,24 +431,24 @@ test.describe('Images', () => {
 
     await insertUploadImage(
       page,
-      'src/images/yellow-flower-small.jpg',
+      path.join(getProjectRootPath(), 'src/images/yellow-flower-small.jpg'),
       'a pretty yellow flower :)',
     );
 
     await assertHTML(
       page,
       html`
-        <p class="PlaygroundEditorTheme__paragraph">
+        <p class="PlaygroundEditorTheme__paragraph" dir="auto">
           <span
             class="editor-image"
             contenteditable="false"
             data-lexical-decorator="true">
             <div draggable="false">
               <img
-                src="https://lexical.dev/img/logo.svg"
                 alt="lexical logo"
                 draggable="false"
-                style="height: inherit; max-width: 500px; width: inherit;" />
+                src="https://lexical.dev/img/logo.svg"
+                style="height: 112px; max-width: 500px; width: 500px" />
             </div>
           </span>
           <span
@@ -427,9 +457,9 @@ test.describe('Images', () => {
             data-lexical-decorator="true">
             <div draggable="false">
               <img
-                src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAASABIAAD/4QCMRXhpZgAATU0AKgAAAAgABQESAAMAAAABAAEAAAEaAAUAAAABAAAASgEbAAUAAAABAAAAUgEoAAMAAAABAAIAAIdpAAQAAAABAAAAWgAAAAAAAABIAAAAAQAAAEgAAAABAAOgAQADAAAAAQABAACgAgAEAAAAAQAAAAagAwAEAAAAAQAAAAcAAAAA/8IAEQgABwAGAwEiAAIRAQMRAf/EAB8AAAEFAQEBAQEBAAAAAAAAAAMCBAEFAAYHCAkKC//EAMMQAAEDAwIEAwQGBAcGBAgGcwECAAMRBBIhBTETIhAGQVEyFGFxIweBIJFCFaFSM7EkYjAWwXLRQ5I0ggjhU0AlYxc18JNzolBEsoPxJlQ2ZJR0wmDShKMYcOInRTdls1V1pJXDhfLTRnaA40dWZrQJChkaKCkqODk6SElKV1hZWmdoaWp3eHl6hoeIiYqQlpeYmZqgpaanqKmqsLW2t7i5usDExcbHyMnK0NTV1tfY2drg5OXm5+jp6vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAQIAAwQFBgcICQoL/8QAwxEAAgIBAwMDAgMFAgUCBASHAQACEQMQEiEEIDFBEwUwIjJRFEAGMyNhQhVxUjSBUCSRoUOxFgdiNVPw0SVgwUThcvEXgmM2cCZFVJInotIICQoYGRooKSo3ODk6RkdISUpVVldYWVpkZWZnaGlqc3R1dnd4eXqAg4SFhoeIiYqQk5SVlpeYmZqgo6SlpqeoqaqwsrO0tba3uLm6wMLDxMXGx8jJytDT1NXW19jZ2uDi4+Tl5ufo6ery8/T19vf4+fr/2wBDAAIDAwMEAwQFBQQGBgYGBggIBwcICA0JCgkKCQ0TDA4MDA4MExEUEQ8RFBEeGBUVGB4jHRwdIyolJSo1MjVFRVz/2wBDAQIDAwMEAwQFBQQGBgYGBggIBwcICA0JCgkKCQ0TDA4MDA4MExEUEQ8RFBEeGBUVGB4jHRwdIyolJSo1MjVFRVz/2gAMAwEAAhEDEQAAAfBeXfV/i9n/2gAIAQEAAQUCmlT7p//aAAgBAxEBPwGWbIKo/wBmP+0f/9oACAECEQE/AYYoHddn7pf7V//aAAgBAQAGPwKFaUpWtZJJVUl//8QAMxABAAMAAgICAgIDAQEAAAILAREAITFBUWFxgZGhscHw0RDh8SAwQFBgcICQoLDA0OD/2gAIAQEAAT8hFyPFTveHPBl//9oADAMBAAIRAxEAABCL/8QAMxEBAQEAAwABAgUFAQEAAQEJAQARITEQQVFhIHHwkYGhsdHB4fEwQFBgcICQoLDA0OD/2gAIAQMRAT8QYOAdB9nP5t//2gAIAQIRAT8QEWh51X58fxf/2gAIAQEAAT8QJfU4BLBcKyeUzf/Z"
                 alt="a pretty yellow flower :)"
                 draggable="false"
+                src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAASABIAAD/4QCMRXhpZgAATU0AKgAAAAgABQESAAMAAAABAAEAAAEaAAUAAAABAAAASgEbAAUAAAABAAAAUgEoAAMAAAABAAIAAIdpAAQAAAABAAAAWgAAAAAAAABIAAAAAQAAAEgAAAABAAOgAQADAAAAAQABAACgAgAEAAAAAQAAAAagAwAEAAAAAQAAAAcAAAAA/8IAEQgABwAGAwEiAAIRAQMRAf/EAB8AAAEFAQEBAQEBAAAAAAAAAAMCBAEFAAYHCAkKC//EAMMQAAEDAwIEAwQGBAcGBAgGcwECAAMRBBIhBTETIhAGQVEyFGFxIweBIJFCFaFSM7EkYjAWwXLRQ5I0ggjhU0AlYxc18JNzolBEsoPxJlQ2ZJR0wmDShKMYcOInRTdls1V1pJXDhfLTRnaA40dWZrQJChkaKCkqODk6SElKV1hZWmdoaWp3eHl6hoeIiYqQlpeYmZqgpaanqKmqsLW2t7i5usDExcbHyMnK0NTV1tfY2drg5OXm5+jp6vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAQIAAwQFBgcICQoL/8QAwxEAAgIBAwMDAgMFAgUCBASHAQACEQMQEiEEIDFBEwUwIjJRFEAGMyNhQhVxUjSBUCSRoUOxFgdiNVPw0SVgwUThcvEXgmM2cCZFVJInotIICQoYGRooKSo3ODk6RkdISUpVVldYWVpkZWZnaGlqc3R1dnd4eXqAg4SFhoeIiYqQk5SVlpeYmZqgo6SlpqeoqaqwsrO0tba3uLm6wMLDxMXGx8jJytDT1NXW19jZ2uDi4+Tl5ufo6ery8/T19vf4+fr/2wBDAAIDAwMEAwQFBQQGBgYGBggIBwcICA0JCgkKCQ0TDA4MDA4MExEUEQ8RFBEeGBUVGB4jHRwdIyolJSo1MjVFRVz/2wBDAQIDAwMEAwQFBQQGBgYGBggIBwcICA0JCgkKCQ0TDA4MDA4MExEUEQ8RFBEeGBUVGB4jHRwdIyolJSo1MjVFRVz/2gAMAwEAAhEDEQAAAfBeXfV/i9n/2gAIAQEAAQUCmlT7p//aAAgBAxEBPwGWbIKo/wBmP+0f/9oACAECEQE/AYYoHddn7pf7V//aAAgBAQAGPwKFaUpWtZJJVUl//8QAMxABAAMAAgICAgIDAQEAAAILAREAITFBUWFxgZGhscHw0RDh8SAwQFBgcICQoLDA0OD/2gAIAQEAAT8hFyPFTveHPBl//9oADAMBAAIRAxEAABCL/8QAMxEBAQEAAwABAgUFAQEAAQEJAQARITEQQVFhIHHwkYGhsdHB4fEwQFBgcICQoLDA0OD/2gAIAQMRAT8QYOAdB9nP5t//2gAIAQIRAT8QEWh51X58fxf/2gAIAQEAAT8QJfU4BLBcKyeUzf/Z"
                 style="height: inherit; max-width: 500px; width: inherit;" />
             </div>
           </span>
@@ -474,9 +504,7 @@ test.describe('Images', () => {
       await assertHTML(
         page,
         html`
-          <p
-            class="PlaygroundEditorTheme__paragraph PlaygroundEditorTheme__ltr"
-            dir="ltr">
+          <p class="PlaygroundEditorTheme__paragraph" dir="auto">
             <span data-lexical-text="true">HelloWorld</span>
             <span
               class="editor-image"
@@ -492,7 +520,7 @@ test.describe('Images', () => {
             </span>
             <br />
           </p>
-          <p class="PlaygroundEditorTheme__paragraph">
+          <p class="PlaygroundEditorTheme__paragraph" dir="auto">
             <br />
           </p>
         `,
@@ -510,9 +538,7 @@ test.describe('Images', () => {
       await assertHTML(
         page,
         html`
-          <p
-            class="PlaygroundEditorTheme__paragraph PlaygroundEditorTheme__ltr"
-            dir="ltr">
+          <p class="PlaygroundEditorTheme__paragraph" dir="auto">
             <span data-lexical-text="true">Hello</span>
             <span
               class="editor-image"
@@ -528,7 +554,7 @@ test.describe('Images', () => {
             </span>
             <span data-lexical-text="true">World</span>
           </p>
-          <p class="PlaygroundEditorTheme__paragraph">
+          <p class="PlaygroundEditorTheme__paragraph" dir="auto">
             <br />
           </p>
         `,
@@ -556,12 +582,10 @@ test.describe('Images', () => {
     await assertHTML(
       page,
       html`
-        <p
-          class="PlaygroundEditorTheme__paragraph PlaygroundEditorTheme__ltr"
-          dir="ltr">
+        <p class="PlaygroundEditorTheme__paragraph" dir="auto">
           <span data-lexical-text="true">HelloWorld</span>
         </p>
-        <p class="PlaygroundEditorTheme__paragraph">
+        <p class="PlaygroundEditorTheme__paragraph" dir="auto">
           <span
             class="editor-image"
             contenteditable="false"
@@ -606,7 +630,10 @@ test.describe('Images', () => {
       page,
       'span[data-lexical-text="true"]',
     );
-    await dragMouse(page, textBoundingBox, textBoundingBox, 'start', 'middle');
+    await dragMouse(page, textBoundingBox, textBoundingBox, {
+      positionEnd: 'middle',
+      positionStart: 'start',
+    });
 
     const lexicalSelection = await evaluate(page, (editor) => {
       return window.lexicalEditor._editorState._selection;
@@ -639,12 +666,10 @@ test.describe('Images', () => {
     await assertHTML(
       page,
       html`
-        <p
-          class="PlaygroundEditorTheme__paragraph PlaygroundEditorTheme__ltr"
-          dir="ltr">
+        <p class="PlaygroundEditorTheme__paragraph" dir="auto">
           <span data-lexical-text="true">text1</span>
         </p>
-        <p class="PlaygroundEditorTheme__paragraph">
+        <p class="PlaygroundEditorTheme__paragraph" dir="auto">
           <span
             class="editor-image"
             contenteditable="false"
@@ -659,12 +684,10 @@ test.describe('Images', () => {
           </span>
           <br />
         </p>
-        <p
-          class="PlaygroundEditorTheme__paragraph PlaygroundEditorTheme__ltr"
-          dir="ltr">
+        <p class="PlaygroundEditorTheme__paragraph" dir="auto">
           <span data-lexical-text="true">text2</span>
         </p>
-        <p class="PlaygroundEditorTheme__paragraph">
+        <p class="PlaygroundEditorTheme__paragraph" dir="auto">
           <span
             class="editor-image"
             contenteditable="false"
@@ -679,9 +702,7 @@ test.describe('Images', () => {
           </span>
           <br />
         </p>
-        <p
-          class="PlaygroundEditorTheme__paragraph PlaygroundEditorTheme__ltr"
-          dir="ltr">
+        <p class="PlaygroundEditorTheme__paragraph" dir="auto">
           <span data-lexical-text="true">text3</span>
         </p>
       `,
@@ -704,20 +725,14 @@ test.describe('Images', () => {
     await assertHTML(
       page,
       html`
-        <p
-          class="PlaygroundEditorTheme__paragraph PlaygroundEditorTheme__ltr"
-          dir="ltr">
+        <p class="PlaygroundEditorTheme__paragraph" dir="auto">
           <span data-lexical-text="true">text1</span>
         </p>
-        <p class="PlaygroundEditorTheme__paragraph"><br /></p>
-        <p
-          class="PlaygroundEditorTheme__paragraph PlaygroundEditorTheme__ltr"
-          dir="ltr">
+        <p class="PlaygroundEditorTheme__paragraph" dir="auto"><br /></p>
+        <p class="PlaygroundEditorTheme__paragraph" dir="auto">
           <span data-lexical-text="true">text2</span>
         </p>
-        <p
-          class="PlaygroundEditorTheme__paragraph PlaygroundEditorTheme__ltr"
-          dir="ltr">
+        <p class="PlaygroundEditorTheme__paragraph" dir="auto">
           <span
             class="editor-image"
             contenteditable="false"
@@ -732,9 +747,7 @@ test.describe('Images', () => {
           </span>
           <span data-lexical-text="true">&lt;- it works!</span>
         </p>
-        <p
-          class="PlaygroundEditorTheme__paragraph PlaygroundEditorTheme__ltr"
-          dir="ltr">
+        <p class="PlaygroundEditorTheme__paragraph" dir="auto">
           <span data-lexical-text="true">text3</span>
         </p>
       `,
@@ -766,9 +779,7 @@ test.describe('Images', () => {
     await assertHTML(
       page,
       html`
-        <p
-          class="PlaygroundEditorTheme__paragraph PlaygroundEditorTheme__ltr"
-          dir="ltr">
+        <p class="PlaygroundEditorTheme__paragraph" dir="auto">
           <span data-lexical-text="true">HelloWorld</span>
           <span
             class="editor-image"
@@ -780,6 +791,98 @@ test.describe('Images', () => {
                 draggable="false"
                 src="${SAMPLE_IMAGE_URL}"
                 style="height: inherit; max-width: 500px; width: inherit" />
+            </div>
+          </span>
+          <br />
+        </p>
+      `,
+    );
+  });
+
+  test('Shows floating link editor when linked image is selected but not when text is selected', async ({
+    page,
+    isPlainText,
+  }) => {
+    test.skip(isPlainText);
+
+    await focusEditor(page);
+    await page.keyboard.type('Hello World');
+    await page.keyboard.press('Enter');
+    await page.keyboard.press('Enter');
+
+    await insertSampleImage(page);
+    await waitForSelector(page, '.editor-image img');
+
+    // Select the image and add a hyperlink
+    await click(page, '.editor-image img');
+    await click(page, '.link');
+    await click(page, '.link-confirm');
+
+    // Put the cursor on the image
+    await click(page, '.editor-image img');
+
+    // Floating link editor should be visible
+    await waitForSelector(page, '.link-editor .link-view');
+
+    // Move cursor to the text
+    await click(page, 'span[data-lexical-text="true"]');
+
+    // Floating link editor should not be visible
+    await expect(page.locator('.link-input .link-view')).not.toBeVisible();
+
+    // Move cursor back to image
+    await click(page, '.editor-image img');
+
+    // Floating link editor should be visible again
+    await waitForSelector(page, '.link-editor .link-view');
+  });
+
+  test(`Verifies image dimensions are properly calculated for both SVG and JPG formats`, async ({
+    page,
+    isPlainText,
+    isCollab,
+  }) => {
+    test.skip(isPlainText || isCollab, 'Skip in plain text and collab mode');
+
+    await focusEditor(page);
+
+    // Insert an SVG image using the Lexical logo
+    await insertUrlImage(
+      page,
+      'https://lexical.dev/img/logo.svg',
+      'lexical logo',
+    );
+
+    // Insert a JPG image
+    await insertUrlImage(page, SAMPLE_IMAGE_URL, 'sample image');
+
+    // Verify both images are inserted with proper dimensions and styling
+    await assertHTML(
+      page,
+      html`
+        <p class="PlaygroundEditorTheme__paragraph" dir="auto">
+          <span
+            class="editor-image"
+            contenteditable="false"
+            data-lexical-decorator="true">
+            <div draggable="false">
+              <img
+                alt="lexical logo"
+                draggable="false"
+                src="https://lexical.dev/img/logo.svg"
+                style="height: 112px; max-width: 500px; width: 500px" />
+            </div>
+          </span>
+          <span
+            class="editor-image"
+            contenteditable="false"
+            data-lexical-decorator="true">
+            <div draggable="false">
+              <img
+                alt="sample image"
+                draggable="false"
+                src="${SAMPLE_IMAGE_URL}"
+                style="height: inherit; max-width: 500px; width: inherit;" />
             </div>
           </span>
           <br />

@@ -32,7 +32,7 @@
     HorizontalRuleNode,
     ImageNode,
   } from '$lib/index.js';
-  import PlaygroundEditorTheme from '../themes/PlaygroundEditorTheme.js';
+  import {theme as editorTheme} from '$lib/themes/system-light-dark/index.js';
   import {
     $getRoot as getRoot,
     $createTextNode as createTextNode,
@@ -41,11 +41,11 @@
   import {onMount} from 'svelte';
   import Composer4Toolbar from './Composer4Toolbar.svelte';
 
-  let isSmallWidthViewport = true;
-  let editorDiv;
+  let isSmallWidthViewport = $state(true);
+  let editorDiv = $state();
 
   const initialConfig = {
-    theme: PlaygroundEditorTheme,
+    theme: editorTheme,
     namespace: 'pg_sveltekit',
     nodes: [
       HeadingNode,
@@ -98,7 +98,7 @@
 </script>
 
 <Composer {initialConfig}>
-  <div class="editor-shell">
+  <div class="editor-shell svelte-lexical">
     <Composer4Toolbar />
     <div class="editor-container">
       <div class="editor-scroller">
@@ -111,7 +111,7 @@
       <ListPlugin />
       <CheckListPlugin />
       <HorizontalRulePlugin />
-      <ImagePlugin />
+      <ImagePlugin captionsEnabled={false} />
       <AutoLinkPlugin />
       <LinkPlugin {validateUrl} />
       {#if !isSmallWidthViewport}

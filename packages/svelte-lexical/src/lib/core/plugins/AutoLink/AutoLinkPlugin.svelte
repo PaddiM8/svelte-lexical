@@ -1,5 +1,8 @@
 <script lang="ts">
+  import type {LinkAttributes} from '@lexical/link';
   import AutoLinkPluginCore from './AutoLinkPluginCore.svelte';
+
+  const {attributes}: {attributes?: LinkAttributes} = $props();
 
   export function createLinkMatcherWithRegExp(
     regExp: RegExp,
@@ -15,12 +18,13 @@
         length: match[0].length,
         text: match[0],
         url: urlTransformer(match[0]),
+        attributes,
       };
     };
   }
 
   const URL_REGEX =
-    /((https?:\/\/(www\.)?)|(www\.))[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)/;
+    /((https?:\/\/(www\.)?)|(www\.))[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)(?<![-.+():%])/;
 
   const EMAIL_REGEX =
     /(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))/;

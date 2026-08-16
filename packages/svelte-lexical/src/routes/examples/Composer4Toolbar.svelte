@@ -1,4 +1,8 @@
+<svelte:options runes={true} />
+
 <script lang="ts">
+  import DropDownBackColorPicker from '$lib/components/toolbar/DropDownBackColorPicker.svelte';
+  import DropDownTextColorPicker from '$lib/components/toolbar/DropDownTextColorPicker.svelte';
   import {BlockFormatDropDown, InsertLink} from '$lib/index.js';
   import {BoldButton} from '$lib/index.js';
   import {Divider} from '$lib/index.js';
@@ -22,43 +26,45 @@
   import {InsertImageDialog} from '$lib/index.js';
   import {InsertHRDropDownItem} from '$lib/index.js';
   import {InsertImageDropDownItem} from '$lib/index.js';
-
-  let imageDialog: InsertImageDialog;
 </script>
 
-<Toolbar let:editor let:activeEditor let:blockType>
-  <UndoButton />
-  <RedoButton />
-  <Divider />
-  {#if activeEditor === editor}
-    <BlockFormatDropDown>
-      <ParagraphDropDownItem />
-      <HeadingDropDownItem headingSize="h1" />
-      <HeadingDropDownItem headingSize="h2" />
-      <HeadingDropDownItem headingSize="h3" />
-      <BulletDropDrownItem />
-      <NumberDropDrownItem />
-      <CheckDropDrownItem />
-      <QuoteDropDrownItem />
-    </BlockFormatDropDown>
+<Toolbar>
+  {#snippet children({editor, activeEditor, blockType})}
+    <UndoButton />
+    <RedoButton />
     <Divider />
-  {/if}
-  <FontFamilyDropDown />
-  <FontSizeDropDown />
-  <Divider />
-  <BoldButton />
-  <ItalicButton />
-  <UnderlineButton />
-  <StrikethroughButton />
-  <FormatCodeButton />
-  <InsertLink />
-  <Divider />
-  <InsertDropDown>
-    <InsertHRDropDownItem />
-    <InsertImageDropDownItem on:click={() => imageDialog.open()} />
-  </InsertDropDown>
-  <Divider />
-  <DropDownAlign />
-  <!-- dialogs -->
-  <InsertImageDialog bind:this={imageDialog} />
+    {#if activeEditor === editor}
+      <BlockFormatDropDown>
+        <ParagraphDropDownItem />
+        <HeadingDropDownItem headingSize="h1" />
+        <HeadingDropDownItem headingSize="h2" />
+        <HeadingDropDownItem headingSize="h3" />
+        <NumberDropDrownItem />
+        <BulletDropDrownItem />
+        <CheckDropDrownItem />
+        <QuoteDropDrownItem />
+      </BlockFormatDropDown>
+      <Divider />
+    {/if}
+    <FontFamilyDropDown />
+    <FontSizeDropDown />
+    <Divider />
+    <BoldButton />
+    <ItalicButton />
+    <UnderlineButton />
+    <StrikethroughButton />
+    <FormatCodeButton />
+    <DropDownTextColorPicker />
+    <DropDownBackColorPicker />
+    <InsertLink />
+    <Divider />
+    <InsertDropDown>
+      <InsertHRDropDownItem />
+      <InsertImageDropDownItem />
+    </InsertDropDown>
+    <Divider />
+    <DropDownAlign />
+    <!-- dialogs -->
+    <InsertImageDialog />
+  {/snippet}
 </Toolbar>

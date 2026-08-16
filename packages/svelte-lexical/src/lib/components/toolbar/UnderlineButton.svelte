@@ -1,9 +1,9 @@
 <script lang="ts">
   import {getContext} from 'svelte';
-  import {FORMAT_TEXT_COMMAND} from 'lexical';
   import type {Writable} from 'svelte/store';
   import {getActiveEditor, getIsEditable} from '$lib/core/composerContext.js';
-  import {IS_APPLE} from '@lexical/utils';
+  import {SHORTCUTS} from './shortcuts.js';
+  import {toggleUnderline} from '$lib/core/commands/commands.js';
 
   const activeEditor = getActiveEditor();
   const isEditable = getIsEditable();
@@ -12,15 +12,13 @@
 </script>
 
 <button
-  disabled={!isEditable}
-  on:click={() => {
-    $activeEditor.dispatchCommand(FORMAT_TEXT_COMMAND, 'underline');
+  disabled={!$isEditable}
+  onclick={() => {
+    toggleUnderline($activeEditor);
   }}
   class={'toolbar-item spaced ' + ($isUnderline ? 'active' : '')}
-  title={IS_APPLE ? 'Underline (⌘U)' : 'Underline (Ctrl+U)'}
+  title={`Underline (${SHORTCUTS.UNDERLINE})`}
   type="button"
-  aria-label={`Format text to underlined. Shortcut: ${
-    IS_APPLE ? '⌘U' : 'Ctrl+U'
-  }`}>
-  <i class="format underline" />
+  aria-label={`Format text to underlined. Shortcut: ${SHORTCUTS.UNDERLINE}`}>
+  <i class="format underline"></i>
 </button>

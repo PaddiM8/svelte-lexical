@@ -5,7 +5,10 @@
     getLanguageFriendlyName,
     normalizeCodeLang,
   } from '@lexical/code';
-  import {$getNearestNodeFromDOMNode as getNearestNodeFromDOMNode} from 'lexical';
+  import {
+    $getNearestNodeFromDOMNode as getNearestNodeFromDOMNode,
+    isHTMLElement,
+  } from 'lexical';
   import {onMount} from 'svelte';
   import {getEditor} from '../../../composerContext.js';
   import CopyButton from './components/CopyButton.svelte';
@@ -21,18 +24,23 @@
     right: string;
   }
 
-  // this component is supposed to be appended to `anchorElem` as per lexical but positioning works without it
-  export let anchorElem: HTMLElement = document.body;
+  interface Props {
+    // this component is supposed to be appended to `anchorElem` as per lexical but positioning works without it
+    anchorElem?: HTMLElement;
+  }
+
+  let {anchorElem = document.body}: Props = $props();
 
   const editor = getEditor();
 
-  let lang = '';
-  let isShown = false;
-  let shouldListenMouseMove = false;
-  let position: Position = {
+  let lang = $state('');
+  let isShown = $state(false);
+
+  let shouldListenMouseMove = $state(false);
+  let position: Position = $state({
     right: '0',
     top: '0',
-  };
+  });
   const codeSetRef: Set<string> = new Set();
   let codeDOMNodeRef: HTMLElement | null = null;
 
@@ -83,38 +91,46 @@
   );
 
   onMount(() => {
-    return editor.registerMutationListener(CodeNode, (mutations) => {
-      editor.getEditorState().read(() => {
-        for (const [key, type] of mutations) {
-          switch (type) {
-            case 'created':
-              codeSetRef.add(key);
-              shouldListenMouseMove = codeSetRef.size > 0;
-              break;
+    return editor.registerMutationListener(
+      CodeNode,
+      (mutations) => {
+        editor.getEditorState().read(() => {
+          for (const [key, type] of mutations) {
+            switch (type) {
+              case 'created':
+                codeSetRef.add(key);
+                break;
 
-            case 'destroyed':
-              codeSetRef.delete(key);
-              shouldListenMouseMove = codeSetRef.size > 0;
-              break;
+              case 'destroyed':
+                codeSetRef.delete(key);
+                break;
 
-            default:
-              break;
+              default:
+                break;
+            }
           }
-        }
-      });
-    });
+        });
+        shouldListenMouseMove = codeSetRef.size > 0;
+      },
+      {skipInitialization: false},
+    );
   });
 
-  $: if (shouldListenMouseMove) {
-    document.addEventListener('mousemove', debouncedOnMouseMove);
-  } else {
-    isShown = false;
-    debouncedOnMouseMove.cancel();
-    document.removeEventListener('mousemove', debouncedOnMouseMove);
-  }
+  $effect(() => {
+    if (!shouldListenMouseMove) {
+      isShown = false;
+      debouncedOnMouseMove.cancel();
+      document.removeEventListener('mousemove', debouncedOnMouseMove);
+      return;
+    }
 
-  $: normalizedLang = normalizeCodeLang(lang);
-  $: codeFriendlyName = getLanguageFriendlyName(lang);
+    document.addEventListener('mousemove', debouncedOnMouseMove);
+    return () =>
+      document.removeEventListener('mousemove', debouncedOnMouseMove);
+  });
+
+  let normalizedLang = $derived(normalizeCodeLang(lang));
+  let codeFriendlyName = $derived(getLanguageFriendlyName(lang));
 
   function getMouseInfo(event: MouseEvent): {
     codeDOMNode: HTMLElement | null;
@@ -122,10 +138,8 @@
   } {
     const target = event.target;
 
-    if (target && target instanceof HTMLElement) {
-      const codeDOMNode = target.closest<HTMLElement>(
-        'code.PlaygroundEditorTheme__code',
-      );
+    if (isHTMLElement(target)) {
+      const codeDOMNode = target.closest<HTMLElement>('code');
       const isOutside = !(
         codeDOMNode ||
         target.closest<HTMLElement>('div.code-action-menu-container')

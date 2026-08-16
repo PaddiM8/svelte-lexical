@@ -7,9 +7,10 @@
 </script>
 
 <button
+  type="button"
   class="action-button import"
-  on:click={() => importFile(editor)}
+  onclick={() => importFile(editor)}
   title="Import"
   aria-label="Import editor state from JSON">
-  <i class="import" />
+  <i class="import"></i>
 </button>

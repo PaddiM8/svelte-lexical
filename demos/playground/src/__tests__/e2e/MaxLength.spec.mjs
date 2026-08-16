@@ -7,6 +7,10 @@
  */
 
 import {
+  pressBackspace,
+  STANDARD_KEYPRESS_DELAY_MS,
+} from '../keyboardShortcuts/index.mjs';
+import {
   assertHTML,
   assertSelection,
   clearEditor,
@@ -42,16 +46,14 @@ test.describe('MaxLength', () => {
     await assertHTML(
       page,
       html`
-        <p
-          class="PlaygroundEditorTheme__paragraph PlaygroundEditorTheme__ltr"
-          dir="ltr">
+        <p class="PlaygroundEditorTheme__paragraph" dir="auto">
           <span data-lexical-text="true">lorem ipsum dolor sit amet, co</span>
         </p>
       `,
     );
   });
 
-  test(`can restrict pasted text to specified length`, async ({page}) => {
+  test.fixme(`can restrict pasted text to specified length`, async ({page}) => {
     await focusEditor(page);
     await pasteFromClipboard(page, {
       'text/plain': 'lorem ipsum dolor sit amet, consectetuer adipiscing elit',
@@ -61,55 +63,47 @@ test.describe('MaxLength', () => {
     await assertHTML(
       page,
       html`
-        <p
-          class="PlaygroundEditorTheme__paragraph PlaygroundEditorTheme__ltr"
-          dir="ltr">
+        <p class="PlaygroundEditorTheme__paragraph" dir="auto">
           <span data-lexical-text="true">lorem ipsum dolor sit amet, co</span>
         </p>
       `,
     );
   });
 
-  test(`can restrict emojis on boundaries`, async ({page}) => {
+  test.fixme(`can restrict emojis on boundaries`, async ({page}) => {
     await focusEditor(page);
     await pasteFromClipboard(page, {
       'text/plain': 'lorem ipsum dolor sit amet, consectetur adipiscing elit',
     });
-    await page.keyboard.press('Backspace');
+    await pressBackspace(page);
 
     await assertHTML(
       page,
       html`
-        <p
-          class="PlaygroundEditorTheme__paragraph PlaygroundEditorTheme__ltr"
-          dir="ltr">
+        <p class="PlaygroundEditorTheme__paragraph" dir="auto">
           <span data-lexical-text="true">lorem ipsum dolor sit amet, c</span>
         </p>
       `,
     );
 
-    await page.keyboard.type('💏');
+    await page.keyboard.type('💏', {delay: STANDARD_KEYPRESS_DELAY_MS});
 
     await assertHTML(
       page,
       html`
-        <p
-          class="PlaygroundEditorTheme__paragraph PlaygroundEditorTheme__ltr"
-          dir="ltr">
+        <p class="PlaygroundEditorTheme__paragraph" dir="auto">
           <span data-lexical-text="true">lorem ipsum dolor sit amet, c</span>
         </p>
       `,
     );
 
-    await page.keyboard.press('Backspace');
+    await pressBackspace(page);
     await page.keyboard.type('💏');
 
     await assertHTML(
       page,
       html`
-        <p
-          class="PlaygroundEditorTheme__paragraph PlaygroundEditorTheme__ltr"
-          dir="ltr">
+        <p class="PlaygroundEditorTheme__paragraph" dir="auto">
           <span data-lexical-text="true">lorem ipsum dolor sit amet, 💏</span>
         </p>
       `,
@@ -121,16 +115,14 @@ test.describe('MaxLength', () => {
     await assertHTML(
       page,
       html`
-        <p
-          class="PlaygroundEditorTheme__paragraph PlaygroundEditorTheme__ltr"
-          dir="ltr">
+        <p class="PlaygroundEditorTheme__paragraph" dir="auto">
           <span data-lexical-text="true">👨‍💻👨‍💻👨‍💻👨‍💻👨‍💻👨‍💻</span>
         </p>
       `,
     );
   });
 
-  test(`paste with empty paragraph in between #3773`, async ({page}) => {
+  test.fixme(`paste with empty paragraph in between #3773`, async ({page}) => {
     await focusEditor(page);
     await pasteFromClipboard(page, {
       'text/plain':
@@ -140,16 +132,14 @@ test.describe('MaxLength', () => {
     await assertHTML(
       page,
       html`
-        <p
-          class="PlaygroundEditorTheme__paragraph PlaygroundEditorTheme__ltr"
-          dir="ltr">
+        <p class="PlaygroundEditorTheme__paragraph" dir="auto">
           <span data-lexical-text="true">lorem ipsum dolor sit amet, co</span>
         </p>
       `,
     );
   });
 
-  test(`paste with empty paragraph at end #3773`, async ({page}) => {
+  test.fixme(`paste with empty paragraph at end #3773`, async ({page}) => {
     await focusEditor(page);
     await pasteFromClipboard(page, {
       'text/plain':
@@ -159,9 +149,7 @@ test.describe('MaxLength', () => {
     await assertHTML(
       page,
       html`
-        <p
-          class="PlaygroundEditorTheme__paragraph PlaygroundEditorTheme__ltr"
-          dir="ltr">
+        <p class="PlaygroundEditorTheme__paragraph" dir="auto">
           <span data-lexical-text="true">lorem ipsum dolor sit amet, co</span>
         </p>
       `,

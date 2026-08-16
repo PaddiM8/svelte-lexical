@@ -32,9 +32,10 @@ test.describe('Regression test #379', () => {
       await assertHTML(
         page,
         html`
-          <p class="PlaygroundEditorTheme__paragraph">
+          <p class="PlaygroundEditorTheme__paragraph" dir="auto">
             <span
               class="mention"
+              spellcheck="false"
               style="background-color: rgba(24, 119, 232, 0.2);"
               data-lexical-text="true">
               Luke Skywalker
@@ -54,9 +55,10 @@ test.describe('Regression test #379', () => {
       await assertHTML(
         page,
         html`
-          <p class="PlaygroundEditorTheme__paragraph">
+          <p class="PlaygroundEditorTheme__paragraph" dir="auto">
             <span
               class="mention"
+              spellcheck="false"
               style="background-color: rgba(24, 119, 232, 0.2);"
               data-lexical-text="true">
               Luke Skywalker

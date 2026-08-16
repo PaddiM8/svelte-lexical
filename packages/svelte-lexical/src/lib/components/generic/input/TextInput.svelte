@@ -1,9 +1,23 @@
 <script lang="ts">
-  export let dataTestId: string;
-  export let label: string;
-  export let placeholder = '';
-  export let value: string;
-  export let id = '';
+  interface Props {
+    dataTestId?: string | undefined;
+    label: string;
+    placeholder?: string;
+    value: string;
+    id?: string;
+    onChange?: ((value: string) => void) | undefined;
+    width?: string | undefined;
+  }
+
+  let {
+    dataTestId = undefined,
+    label,
+    placeholder = '',
+    value = $bindable(),
+    id = '',
+    onChange = undefined,
+    width = undefined,
+  }: Props = $props();
 </script>
 
 <div class="Input__wrapper">
@@ -11,8 +25,15 @@
   <input
     type="text"
     class="Input__input"
+    style="width: {width};"
     {placeholder}
     bind:value
     data-test-id={dataTestId}
-    {id} />
+    {id}
+    onchange={(e) => {
+      if (onChange) {
+        /* @ts-ignore TS not supported in Svelte Html */
+        onChange(e.target.value);
+      }
+    }} />
 </div>

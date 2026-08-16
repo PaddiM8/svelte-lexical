@@ -3,6 +3,7 @@
     LinkNode,
     TOGGLE_LINK_COMMAND,
     $toggleLink as toggleLink,
+    type LinkAttributes,
   } from '@lexical/link';
   import {mergeRegister, objectKlassEquals} from '@lexical/utils';
   import {
@@ -15,7 +16,12 @@
   import {onMount} from 'svelte';
   import {getEditor} from '../../composerContext.js';
 
-  export let validateUrl: undefined | ((url: string) => boolean) = undefined;
+  type Props = {
+    validateUrl?: (url: string) => boolean;
+    attributes?: LinkAttributes;
+  };
+
+  let {validateUrl = undefined, attributes = {}}: Props = $props();
 
   const editor = getEditor();
 
@@ -32,13 +38,13 @@
             return true;
           } else if (typeof payload === 'string') {
             if (validateUrl === undefined || validateUrl(payload)) {
-              toggleLink(payload);
+              toggleLink(payload, attributes);
               return true;
             }
             return false;
           } else {
             const {url, target, rel, title} = payload;
-            toggleLink(url, {rel, target, title});
+            toggleLink(url, {...attributes, rel, target, title});
             return true;
           }
         },
@@ -56,12 +62,11 @@
               ) {
                 return false;
               }
-              const clipboardEvent = event as ClipboardEvent;
-              if (clipboardEvent.clipboardData === null) {
+              //const clipboardEvent = event as ClipboardEvent;
+              if (event.clipboardData === null) {
                 return false;
               }
-              const clipboardText =
-                clipboardEvent.clipboardData.getData('text');
+              const clipboardText = event.clipboardData.getData('text');
               if (!validateUrl!(clipboardText)) {
                 return false;
               }

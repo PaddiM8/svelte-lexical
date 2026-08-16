@@ -7,10 +7,10 @@
 </script>
 
 <DropDownItem
-  on:click={() => {
+  onclick={() => {
     $activeEditor.dispatchCommand(INSERT_HORIZONTAL_RULE_COMMAND, undefined);
   }}
   class="item">
-  <i class="icon horizontal-rule" />
+  <i class="icon horizontal-rule"></i>
   <span class="text">Horizontal Rule</span>
 </DropDownItem>

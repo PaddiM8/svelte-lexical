@@ -33,16 +33,35 @@
     FloatingLinkEditorPlugin,
     CodeNode,
     CodeHighlightNode,
-    CodeHighlightPlugin,
+    CodeHighlightPrismPlugin,
     CodeActionMenuPlugin,
     CaptionEditorCollaborationPlugin,
     CaptionEditorHistoryPlugin,
     CAN_USE_DOM,
     MarkdownShortcutPlugin,
     ALL_TRANSFORMERS,
+    ColumnLayoutPlugin,
+    LayoutContainerNode,
+    LayoutItemNode,
+    TableNode,
+    TableCellNode,
+    TableRowNode,
+    TablePlugin,
+    TableHoverActionPlugin,
+    TableActionMenuPlugin,
+    TableCellResizerPlugin,
+    YoutubePlugin,
+    YouTubeNode,
+    TweetNode,
+    TwitterPlugin,
+    BlueskyPlugin,
+    BlueskyNode,
+    TabIndentationPlugin,
+    ComponentPickerMenuPlugin,
   } from 'svelte-lexical';
+  import {CodeHighlightShikiPlugin} from 'svelte-lexical/shiki';
   import {prepopulatedRichText} from './prepopulatedRichText';
-  import type {SettingsStore} from './settings/setttingsStore';
+  import type {SettingsStore} from './settings/settingsStore';
   import PlaygroundEditorTheme from './themes/PlaygroundEditorTheme';
   import ToolbarPlayground from './ToolbarPlayground.svelte';
   import {createWebsocketProvider} from './collaboration';
@@ -55,15 +74,17 @@
     // @ts-expect-error split view has right and let frames
     window.parent != null && window.parent.frames.right === window;
 
-  $: placeholderText = $settings.isCollab
-    ? 'Enter some collaborative rich text...'
-    : $settings.isRichText
-      ? 'Enter some rich text...'
-      : 'Enter some plain text...';
+  let placeholderText = $derived(
+    $settings.isCollab
+      ? 'Enter some collaborative rich text...'
+      : $settings.isRichText
+        ? 'Enter some rich text...'
+        : 'Enter some plain text...',
+  );
 
-  let isSmallWidthViewport = true;
+  let isSmallWidthViewport = $state(true);
 
-  let editorDiv;
+  let editorDiv: HTMLDivElement | undefined = $state();
 
   const initialConfig = {
     editorState: $settings.isCollab
@@ -85,6 +106,14 @@
       LinkNode,
       CodeNode,
       CodeHighlightNode,
+      LayoutContainerNode,
+      LayoutItemNode,
+      TableNode,
+      TableCellNode,
+      TableRowNode,
+      YouTubeNode,
+      TweetNode,
+      BlueskyNode,
     ],
     onError: (error: Error) => {
       throw error;
@@ -127,10 +156,11 @@
       <KeywordPlugin {keywordsRegex} />
       <HashtagPlugin />
       <AutoLinkPlugin />
-      <MarkdownShortcutPlugin transformers={ALL_TRANSFORMERS} />
+      <ColumnLayoutPlugin />
 
       {#if $settings.isRichText}
         <RichTextPlugin />
+
         {#if $settings.isCollab}
           <CollaborationPlugin
             id="main"
@@ -151,7 +181,22 @@
           {/if}
         </ImagePlugin>
         <LinkPlugin {validateUrl} />
-        <CodeHighlightPlugin />
+        {#if $settings.isCodeHighlighted}
+          {#if $settings.isCodeShiki}
+            <CodeHighlightShikiPlugin />
+          {:else}
+            <CodeHighlightPrismPlugin />
+          {/if}
+        {/if}
+        <MarkdownShortcutPlugin transformers={ALL_TRANSFORMERS} />
+        <TablePlugin hasHorizontalScroll={$settings.tableHorizontalScroll} />
+        <TableHoverActionPlugin anchorElem={editorDiv} />
+        <TableCellResizerPlugin />
+        <TableActionMenuPlugin anchorElem={editorDiv} cellMerge={true} />
+        <YoutubePlugin />
+        <TwitterPlugin />
+        <BlueskyPlugin />
+        <TabIndentationPlugin />
         {#if !isSmallWidthViewport}
           <FloatingLinkEditorPlugin anchorElem={editorDiv} />
           <CodeActionMenuPlugin anchorElem={editorDiv} />
@@ -160,6 +205,7 @@
         <PlainTextPlugin />
         <SharedHistoryPlugin />
       {/if}
+      <ComponentPickerMenuPlugin />
 
       <ActionBar />
     </div>

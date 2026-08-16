@@ -5,15 +5,27 @@ import type {
   EditorConfig,
   LexicalEditor,
   LexicalNode,
+  LexicalUpdateJSON,
   NodeKey,
   SerializedEditor,
   SerializedLexicalNode,
   Spread,
 } from 'lexical';
 
-import {$applyNodeReplacement, createEditor, DecoratorNode} from 'lexical';
-import type {ComponentProps, SvelteComponent} from 'svelte';
+import {
+  $applyNodeReplacement,
+  createEditor,
+  DecoratorNode,
+  LineBreakNode,
+  ParagraphNode,
+  RootNode,
+  TextNode,
+} from 'lexical';
+import type {ComponentProps} from 'svelte';
 import ImageComponent from './ImageComponent.svelte';
+import {LinkNode} from '@lexical/link';
+import {HashtagNode} from '@lexical/hashtag';
+import {KeywordNode} from '../KeywordNode.js';
 /*import * as React from 'react';
 import {Suspense} from 'react';*/
 
@@ -34,9 +46,18 @@ export interface ImagePayload {
   captionsEnabled?: boolean;
 }
 
+function isGoogleDocCheckboxImg(img: HTMLImageElement): boolean {
+  return (
+    img.parentElement != null &&
+    img.parentElement.tagName === 'LI' &&
+    img.previousSibling === null &&
+    img.getAttribute('aria-roledescription') === 'checkbox'
+  );
+}
+
 function convertImageElement(domNode: Node): null | DOMConversionOutput {
   const img = domNode as HTMLImageElement;
-  if (img.src.startsWith('file:///')) {
+  if (img.src.startsWith('file:///') || isGoogleDocCheckboxImg(img)) {
     return null;
   }
   const {alt: altText, src, width, height} = img;
@@ -58,9 +79,8 @@ export type SerializedImageNode = Spread<
 >;
 
 type DecoratorImageType = {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  componentClass: typeof SvelteComponent<any>;
-  props: ComponentProps<ImageComponent>;
+  componentClass: typeof ImageComponent;
+  updateProps: (props: ComponentProps<typeof ImageComponent>) => void;
 };
 
 export class ImageNode extends DecoratorNode<DecoratorImageType> {
@@ -93,16 +113,20 @@ export class ImageNode extends DecoratorNode<DecoratorImageType> {
   }
 
   static importJSON(serializedNode: SerializedImageNode): ImageNode {
-    const {altText, height, width, maxWidth, caption, src, showCaption} =
-      serializedNode;
-    const node = $createImageNode({
+    const {altText, height, width, maxWidth, src, showCaption} = serializedNode;
+    return $createImageNode({
       altText,
       height,
       maxWidth,
       showCaption,
       src,
       width,
-    });
+    }).updateFromJSON(serializedNode);
+  }
+
+  updateFromJSON(serializedNode: LexicalUpdateJSON<SerializedImageNode>): this {
+    const node = super.updateFromJSON(serializedNode);
+    const {caption} = serializedNode;
     const nestedEditor = node.__caption;
     const editorState = nestedEditor.parseEditorState(caption.editorState);
     if (!editorState.isEmpty()) {
@@ -147,20 +171,32 @@ export class ImageNode extends DecoratorNode<DecoratorImageType> {
     this.__width = width || 'inherit';
     this.__height = height || 'inherit';
     this.__showCaption = showCaption || false;
-    this.__caption = caption || createEditor();
+    this.__caption =
+      caption ||
+      createEditor({
+        namespace: 'Playground/ImageNodeCaption',
+        nodes: [
+          RootNode,
+          TextNode,
+          LineBreakNode,
+          ParagraphNode,
+          LinkNode,
+          HashtagNode,
+          KeywordNode,
+        ],
+      });
     this.__captionsEnabled = captionsEnabled || captionsEnabled === undefined;
   }
 
   exportJSON(): SerializedImageNode {
     return {
+      ...super.exportJSON(),
       altText: this.getAltText(),
       caption: this.__caption.toJSON(),
       height: this.__height === 'inherit' ? 0 : this.__height,
       maxWidth: this.__maxWidth,
       showCaption: this.__showCaption,
       src: this.getSrc(),
-      type: 'image',
-      version: 1,
       width: this.__width === 'inherit' ? 0 : this.__width,
     };
   }
@@ -211,18 +247,18 @@ export class ImageNode extends DecoratorNode<DecoratorImageType> {
   decorate(editor: LexicalEditor, config: EditorConfig): DecoratorImageType {
     return {
       componentClass: ImageComponent,
-      props: {
-        src: this.__src,
-        altText: this.__altText,
-        width: this.__width,
-        height: this.__height,
-        maxWidth: this.__maxWidth,
-        nodeKey: this.__key,
-        showCaption: this.__showCaption,
-        caption: this.__caption,
-        captionsEnabled: this.__captionsEnabled,
-        resizable: true,
-        editor: editor,
+      updateProps: (props) => {
+        props.src = this.__src;
+        props.altText = this.__altText;
+        props.width = this.__width;
+        props.height = this.__height;
+        props.maxWidth = this.__maxWidth;
+        props.nodeKey = this.__key;
+        props.showCaption = this.__showCaption;
+        props.caption = this.__caption;
+        props.captionsEnabled = this.__captionsEnabled;
+        props.resizable = true;
+        props.editor = editor;
       },
     };
   }

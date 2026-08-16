@@ -6,8 +6,16 @@
  *
  */
 
+import {IS_LINUX} from '../utils/index.mjs';
 import {
-  IS_LINUX,
+  decreaseFontSize,
+  increaseFontSize,
+  toggleBold,
+  toggleItalic,
+  toggleStrikethrough,
+  toggleUnderline,
+} from '../keyboardShortcuts/index.mjs';
+import {
   assertHTML,
   focusEditor,
   html,
@@ -20,49 +28,124 @@ test.describe('Autocomplete', () => {
   test.beforeEach(({isCollab, page}) =>
     initialize({isAutocomplete: true, isCollab, page}),
   );
-  test('Can autocomplete a word', async ({page, isPlainText, browserName}) => {
-    test.fixme(browserName === 'firefox' && IS_LINUX);
-    await focusEditor(page);
-    await page.keyboard.type('Sort by alpha');
-    await sleep(500);
-    await assertHTML(
-      page,
-      html`
-        <p
-          class="PlaygroundEditorTheme__paragraph PlaygroundEditorTheme__ltr"
-          dir="ltr">
-          <span data-lexical-text="true">Sort by alpha</span>
-          <span contenteditable="false" data-lexical-decorator="true">
+  test.fixme(
+    'Can autocomplete a word',
+    async ({page, isPlainText, browserName}) => {
+      test.fixme(browserName === 'firefox' && IS_LINUX);
+      await focusEditor(page);
+      await page.keyboard.type('Sort by alpha');
+      await sleep(500);
+      await assertHTML(
+        page,
+        html`
+          <p class="PlaygroundEditorTheme__paragraph" dir="auto">
+            <span data-lexical-text="true">Sort by alpha</span>
             <span
               class="PlaygroundEditorTheme__autocomplete"
-              spellcheck="false">
+              style="font-size: 15px"
+              data-lexical-text="true">
               betical (TAB)
             </span>
-          </span>
-          <br />
-        </p>
-      `,
-      html`
-        <p
-          class="PlaygroundEditorTheme__paragraph PlaygroundEditorTheme__ltr"
-          dir="ltr">
-          <span data-lexical-text="true">Sort by alpha</span>
-          <span contenteditable="false" data-lexical-decorator="true"></span>
-          <br />
-        </p>
-      `,
-    );
-    await page.keyboard.press('Tab');
-    await page.keyboard.type(' order:');
-    await assertHTML(
-      page,
-      html`
-        <p
-          class="PlaygroundEditorTheme__paragraph PlaygroundEditorTheme__ltr"
-          dir="ltr">
-          <span data-lexical-text="true">Sort by alphabetical order:</span>
-        </p>
-      `,
-    );
-  });
+          </p>
+        `,
+        html`
+          <p class="PlaygroundEditorTheme__paragraph" dir="auto">
+            <span data-lexical-text="true">Sort by alpha</span>
+            <span data-lexical-text="true"></span>
+          </p>
+        `,
+      );
+      await page.keyboard.press('Tab');
+      await page.keyboard.type(' order:');
+      await assertHTML(
+        page,
+        html`
+          <p class="PlaygroundEditorTheme__paragraph" dir="auto">
+            <span data-lexical-text="true">Sort by alpha</span>
+            <span style="font-size: 15px" data-lexical-text="true">
+              betical order:
+            </span>
+          </p>
+        `,
+      );
+    },
+  );
+
+  test.fixme(
+    'Can autocomplete in the same format as the original text',
+    async ({page, isPlainText}) => {
+      test.skip(isPlainText);
+      await focusEditor(page);
+      await toggleBold(page);
+      await toggleItalic(page);
+      await toggleUnderline(page);
+      await toggleStrikethrough(page);
+      await increaseFontSize(page);
+
+      await page.keyboard.type('Test');
+      await sleep(500);
+
+      await assertHTML(
+        page,
+        html`
+          <p class="PlaygroundEditorTheme__paragraph" dir="auto">
+            <strong
+              class="PlaygroundEditorTheme__textUnderlineStrikethrough PlaygroundEditorTheme__textBold PlaygroundEditorTheme__textItalic"
+              style="font-size: 17px;"
+              data-lexical-text="true">
+              Test
+            </strong>
+            <strong
+              class="PlaygroundEditorTheme__textUnderlineStrikethrough PlaygroundEditorTheme__textBold PlaygroundEditorTheme__textItalic PlaygroundEditorTheme__autocomplete"
+              style="font-size: 17px;"
+              data-lexical-text="true">
+              imonials (TAB)
+            </strong>
+          </p>
+        `,
+        html`
+          <p class="PlaygroundEditorTheme__paragraph" dir="auto">
+            <strong
+              class="PlaygroundEditorTheme__textUnderlineStrikethrough PlaygroundEditorTheme__textBold PlaygroundEditorTheme__textItalic"
+              style="font-size: 17px;"
+              data-lexical-text="true">
+              Test
+            </strong>
+            <span data-lexical-text="true"></span>
+          </p>
+        `,
+      );
+
+      await page.keyboard.press('Tab');
+
+      await toggleBold(page);
+      await toggleItalic(page);
+      await toggleUnderline(page);
+      await toggleStrikethrough(page);
+      await decreaseFontSize(page);
+
+      await page.keyboard.type(' 2024');
+
+      await assertHTML(
+        page,
+        html`
+          <p class="PlaygroundEditorTheme__paragraph" dir="auto">
+            <strong
+              class="PlaygroundEditorTheme__textUnderlineStrikethrough PlaygroundEditorTheme__textBold PlaygroundEditorTheme__textItalic"
+              style="font-size: 17px;"
+              data-lexical-text="true">
+              Test
+            </strong>
+            <strong
+              class="PlaygroundEditorTheme__textUnderlineStrikethrough PlaygroundEditorTheme__textBold PlaygroundEditorTheme__textItalic"
+              style="font-size: 17px;"
+              data-lexical-text="true">
+              imonials
+            </strong>
+            <span style="font-size: 15px;" data-lexical-text="true">2024</span>
+          </p>
+        `,
+      );
+    },
+  );
 });

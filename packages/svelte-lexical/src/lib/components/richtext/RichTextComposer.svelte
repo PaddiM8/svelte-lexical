@@ -1,3 +1,5 @@
+<!-- eslint-disable-next-line svelte/no-unused-svelte-ignore -->
+<!-- svelte-ignore state_referenced_locally -->
 <script lang="ts">
   import {ListItemNode, ListNode} from '@lexical/list';
   import {HeadingNode, QuoteNode} from '@lexical/rich-text';
@@ -15,14 +17,17 @@
   import RichTextPlugin from '$lib/core/plugins/RichTextPlugin.svelte';
   import ActionBar from '../actionbar/ActionBar.svelte';
   import ToolbarRichText from './ToolbarRichText.svelte';
-  import type {SvelteComponent} from 'svelte';
   import PlaceHolder from '$lib/core/plugins/PlaceHolder.svelte';
   import AutoFocusPlugin from '$lib/core/plugins/AutoFocusPlugin.svelte';
   import CaptionEditorHistoryPlugin from '$lib/core/plugins/Image/CaptionEditorHistoryPlugin.svelte';
 
-  export let theme: EditorThemeClasses;
+  interface Props {
+    theme: EditorThemeClasses;
+  }
 
-  let composer: SvelteComponent;
+  let {theme}: Props = $props();
+
+  let composer: Composer;
 
   const initialConfig = {
     namespace: 'Playground',
@@ -46,7 +51,7 @@
 </script>
 
 <Composer {initialConfig} bind:this={composer}>
-  <div class="editor-shell">
+  <div class="editor-shell svelte-lexical">
     <ToolbarRichText />
     <div class="editor-container">
       <div class="editor-scroller">

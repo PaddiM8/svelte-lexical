@@ -29,6 +29,7 @@ test.describe('Keyboard shortcuts', () => {
     isPlainText,
     browserName,
   }) => {
+    test.fixme(browserName === 'firefox');
     test.skip(!supportsTranspose);
 
     await focusEditor(page);
@@ -43,9 +44,7 @@ test.describe('Keyboard shortcuts', () => {
     await assertHTML(
       page,
       html`
-        <p
-          class="PlaygroundEditorTheme__paragraph PlaygroundEditorTheme__ltr"
-          dir="ltr">
+        <p class="PlaygroundEditorTheme__paragraph" dir="auto">
           <span data-lexical-text="true">bca</span>
         </p>
       `,

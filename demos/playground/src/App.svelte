@@ -2,19 +2,34 @@
   import {setContext} from 'svelte';
   import RichTextComposer from './RichTextComposer.svelte';
   import Settings from './settings/Settings.svelte';
-  import {createSettingsStore} from './settings/setttingsStore';
+  import {createSettingsStore} from './settings/settingsStore';
+  import {
+    ThemeSelector,
+    ThemeImage,
+  } from 'svelte-lexical/dist/themes/system-light-dark/ui';
 
   const settings = createSettingsStore();
   setContext('settings', settings);
 </script>
 
 <main>
-  <img src="src/images/logo.svg" alt="Svelte Lexical!" />
+  <div class="header-container">
+    <ThemeSelector />
+  </div>
+  <ThemeImage
+    lightSrc="images/logo.svg"
+    darkSrc="images/logo_white.svg"
+    alt="Svelte Lexical!"
+    style="margin: 2em; max-width: 800px;" />
   <p>
-    This Rich Text Editor is build with <a
-      href="https://github.com/umaranis/svelte-lexical/">
+    This is the <a href="https://github.com/umaranis/svelte-lexical/">
       svelte-lexical
     </a>
+    <strong>playground.</strong>
+  </p>
+  <p>
+    It demonstrates most of the features of the library. It is also used for
+    running end-to-end (e2e) tests.
   </p>
 
   <!-- `text-align: left` added to reset the center text alignment of the main div.
@@ -35,8 +50,13 @@
     margin: 0 auto;
   }
 
-  img {
-    margin: 2em;
-    max-width: 800px;
+  .header-container {
+    display: flex;
+    justify-content: flex-end;
+    /* padding: 0.5em 1em; */ /* this somehow affects a unit test for selection*/
+  }
+
+  a {
+    color: var(--link-color);
   }
 </style>

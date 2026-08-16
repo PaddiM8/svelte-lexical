@@ -49,12 +49,13 @@
   buttonLabel={$value}
   buttonIconClassName=""
   {buttonAriaLabel}>
+  <!-- eslint-disable-next-line svelte/require-each-key -->
   {#each FONT_SIZE_OPTIONS as [option, text]}
     <DropDownItem
       class={`item ${
         $value === option ? 'active dropdown-item-active' : ''
       } 'fontsize-item'`}
-      on:click={() => handleClick(option)}>
+      onclick={() => handleClick(option)}>
       <span class="text">{text}</span>
     </DropDownItem>
   {/each}

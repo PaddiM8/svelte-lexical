@@ -5,29 +5,37 @@
 
   const editor = getEditor();
 
-  export let loggedCommands: ReadonlyArray<
-    LexicalCommand<unknown> & {payload: unknown}
-  > = [];
+  interface Props {
+    loggedCommands?: ReadonlyArray<
+      {index: number} & LexicalCommand<unknown> & {payload: unknown}
+    >;
+  }
+
+  let {loggedCommands = $bindable([])}: Props = $props();
 
   onMount(() => {
     const unregisterCommandListeners = new Set<() => void>();
 
+    let i = 0;
     for (const [command] of editor._commands) {
       unregisterCommandListeners.add(
         editor.registerCommand(
           command,
           (payload) => {
-            const newState = [...loggedCommands];
-            newState.push({
+            i += 1;
+            const entry = {
+              index: i,
               payload,
               type: command.type ? command.type : 'UNKNOWN',
+            };
+
+            queueMicrotask(() => {
+              const newState = [...loggedCommands, entry];
+              if (newState.length > 10) {
+                newState.shift();
+              }
+              loggedCommands = newState;
             });
-
-            if (newState.length > 10) {
-              newState.shift();
-            }
-
-            loggedCommands = newState;
 
             return false;
           },

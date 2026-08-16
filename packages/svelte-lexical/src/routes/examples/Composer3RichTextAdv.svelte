@@ -23,17 +23,17 @@
     HorizontalRuleNode,
     ImageNode,
   } from '$lib/index.js';
-  import PlaygroundEditorTheme from '../themes/PlaygroundEditorTheme.js';
+  import {theme as editorTheme} from '$lib/themes/system-light-dark/index.js';
   import {
     $getRoot as getRoot,
     $createTextNode as createTextNode,
     $createParagraphNode as createParagraphNode,
   } from '$lib/index.js';
-  import MarkdownShortcutPlugin from '$lib/core/plugins/MardownShortcut/MarkdownShortcutPlugin.svelte';
+  import MarkdownShortcutPlugin from '$lib/core/plugins/MarkdownShortcut/MarkdownShortcutPlugin.svelte';
   import Composer3Toolbar from './Composer3Toolbar.svelte';
 
   const initialConfig = {
-    theme: PlaygroundEditorTheme,
+    theme: editorTheme,
     namespace: 'pg_sveltekit',
     nodes: [
       HeadingNode,
@@ -67,7 +67,7 @@
 </script>
 
 <Composer {initialConfig}>
-  <div class="editor-shell">
+  <div class="editor-shell svelte-lexical">
     <Composer3Toolbar />
     <div class="editor-container">
       <div class="editor-scroller">
@@ -80,7 +80,7 @@
       <ListPlugin />
       <CheckListPlugin />
       <HorizontalRulePlugin />
-      <ImagePlugin />
+      <ImagePlugin captionsEnabled={false} />
       <MarkdownShortcutPlugin
         transformers={[
           ...TEXT_FORMAT_TRANSFORMERS,

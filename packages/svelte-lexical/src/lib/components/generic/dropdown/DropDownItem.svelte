@@ -2,12 +2,23 @@
   import {onMount} from 'svelte';
   import {getRegisterItemFunc} from './utils.js';
 
-  let className: string;
-  export {className as class};
-  export let title: string | undefined = undefined;
-  export let ariaLabel: string | undefined = undefined;
+  interface Props {
+    class: string;
+    title?: string | undefined;
+    ariaLabel?: string | undefined;
+    onclick: () => void;
+    children?: import('svelte').Snippet;
+  }
 
-  let ref: HTMLButtonElement;
+  let {
+    class: className,
+    title = undefined,
+    ariaLabel = undefined,
+    onclick,
+    children,
+  }: Props = $props();
+
+  let ref: HTMLButtonElement | undefined = $state();
 
   const registerItem = getRegisterItemFunc();
 
@@ -16,16 +27,16 @@
   }
 
   onMount(() => {
-    registerItem(ref);
+    registerItem(ref!);
   });
 </script>
 
 <button
   class={className}
-  on:click
+  {onclick}
   bind:this={ref}
   {title}
   type="button"
   aria-label={ariaLabel}>
-  <slot />
+  {@render children?.()}
 </button>

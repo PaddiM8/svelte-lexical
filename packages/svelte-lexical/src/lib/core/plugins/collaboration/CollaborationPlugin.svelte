@@ -1,3 +1,5 @@
+<!-- eslint-disable-next-line svelte/no-unused-svelte-ignore -->
+<!-- svelte-ignore state_referenced_locally -->
 <script lang="ts">
   import type {Doc} from 'yjs';
 
@@ -8,6 +10,7 @@
     createBinding,
     type ExcludedProperties,
     type Provider,
+    type SyncCursorPositionsFn,
   } from '@lexical/yjs';
   import {onMount} from 'svelte';
   import YjsCollaboration from './YjsCollaboration.svelte';
@@ -16,19 +19,31 @@
 
   const editor = getEditor();
 
-  export let id: string = editor.getKey();
-  export let providerFactory: (
-    // eslint-disable-next-line no-shadow
-    id: string,
-    yjsDocMap: Map<string, Doc>,
-  ) => Provider;
-  export let shouldBootstrap: boolean;
-  export let username: string | undefined = undefined;
-  export let cursorColor: string | undefined = undefined;
-  export let cursorsContainerRef: HTMLElement | null = null;
-  export let initialEditorState: InitialEditorStateType | null = null;
-  export let excludedProperties: ExcludedProperties | undefined = undefined;
-  export let awarenessData: object | undefined = undefined;
+  interface Props {
+    id?: string;
+    providerFactory: (id: string, yjsDocMap: Map<string, Doc>) => Provider;
+    shouldBootstrap: boolean;
+    username?: string | undefined;
+    cursorColor?: string | undefined;
+    cursorsContainerRef?: HTMLElement | null;
+    initialEditorState?: InitialEditorStateType | null;
+    excludedProperties?: ExcludedProperties | undefined;
+    awarenessData?: object | undefined;
+    syncCursorPositionsFn?: SyncCursorPositionsFn;
+  }
+
+  let {
+    id = editor.getKey(),
+    providerFactory,
+    shouldBootstrap,
+    username = undefined,
+    cursorColor = undefined,
+    cursorsContainerRef = null,
+    initialEditorState = null,
+    excludedProperties = undefined,
+    awarenessData = undefined,
+    syncCursorPositionsFn = undefined,
+  }: Props = $props();
 
   const collabContext = useCollaborationContext(username, cursorColor);
 
@@ -69,7 +84,8 @@
   {shouldBootstrap}
   {cursorsContainerRef}
   {initialEditorState}
-  {awarenessData} />
+  {awarenessData}
+  {syncCursorPositionsFn} />
 
 <YjsHistory {editor} {binding} />
 <YjsFocusTracking {editor} {provider} {name} {color} {awarenessData} />

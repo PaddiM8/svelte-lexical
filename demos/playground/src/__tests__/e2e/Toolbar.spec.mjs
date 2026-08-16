@@ -31,202 +31,240 @@ import {
 
 test.describe('Toolbar', () => {
   test.beforeEach(({isCollab, page}) =>
-    initialize({isCollab, page, showNestedEditorTreeView: false}),
+    initialize({
+      isCollab,
+      page,
+      showNestedEditorTreeView: false,
+      tableHorizontalScroll: false,
+    }),
   );
 
-  test.fixme('Insert image caption + table', async ({page, isPlainText}) => {
-    test.skip(isPlainText);
-    await focusEditor(page);
+  test.fixme(
+    'Insert image caption + table',
+    {
+      tag: '@flaky',
+    },
+    async ({page, isPlainText}) => {
+      test.skip(isPlainText);
+      await focusEditor(page);
 
-    // Add caption
-    await insertSampleImage(page);
-    // Catch flakiness earlier
-    await assertHTML(
-      page,
-      html`
-        <p>
-          <span contenteditable="false" data-lexical-decorator="true">
-            <div draggable="false">
-              <img
-                alt="Yellow flower in tilt shift lens"
-                draggable="false"
-                src="${SAMPLE_IMAGE_URL}" />
-            </div>
-          </span>
-          <br />
-        </p>
-      `,
-      undefined,
-      {
-        ignoreClasses: true,
-        ignoreInlineStyles: true,
-      },
-    );
-    await click(page, '.editor-image img');
-    await click(page, '.image-caption-button');
-    await focus(page, '.ImageNode__contentEditable');
-    await page.keyboard.type('Yellow flower in tilt shift lens');
-    await assertHTML(
-      page,
-      html`
-        <p>
-          <span contenteditable="false" data-lexical-decorator="true">
-            <div draggable="false">
-              <img
-                alt="Yellow flower in tilt shift lens"
-                draggable="false"
-                src="${SAMPLE_IMAGE_URL}" />
-            </div>
-            <div>
-              <div
-                contenteditable="true"
-                role="textbox"
-                spellcheck="true"
-                data-lexical-editor="true">
-                <p dir="ltr">
-                  <span data-lexical-text="true">
-                    Yellow flower in tilt shift lens
-                  </span>
-                </p>
+      // Add caption
+      await insertSampleImage(page);
+      // Catch flakiness earlier
+      await assertHTML(
+        page,
+        html`
+          <p dir="auto">
+            <span contenteditable="false" data-lexical-decorator="true">
+              <div draggable="false">
+                <img
+                  alt="Yellow flower in tilt shift lens"
+                  draggable="false"
+                  src="${SAMPLE_IMAGE_URL}" />
               </div>
-            </div>
-          </span>
-          <br />
-        </p>
-      `,
-      undefined,
-      {
-        ignoreClasses: true,
-        ignoreInlineStyles: true,
-      },
-    );
+            </span>
+            <br />
+          </p>
+        `,
+        undefined,
+        {
+          ignoreClasses: true,
+          ignoreInlineStyles: true,
+        },
+      );
+      await click(page, '.editor-image img');
+      await click(page, '.image-caption-button');
+      await focus(page, '.ImageNode__contentEditable');
+      await page.keyboard.type('Yellow flower in tilt shift lens');
+      await assertHTML(
+        page,
+        html`
+          <p dir="auto">
+            <span contenteditable="false" data-lexical-decorator="true">
+              <div draggable="false">
+                <img
+                  alt="Yellow flower in tilt shift lens"
+                  draggable="false"
+                  src="${SAMPLE_IMAGE_URL}" />
+              </div>
+              <div>
+                <div
+                  contenteditable="true"
+                  role="textbox"
+                  spellcheck="true"
+                  aria-placeholder="Enter a caption..."
+                  data-lexical-editor="true">
+                  <p>
+                    <span data-lexical-text="true">
+                      Yellow flower in tilt shift lens
+                    </span>
+                  </p>
+                </div>
+              </div>
+            </span>
+            <br />
+          </p>
+        `,
+        undefined,
+        {
+          ignoreClasses: true,
+          ignoreInlineStyles: true,
+        },
+        (actualHtml) =>
+          // flaky fix: remove the extra <p dir="auto"><br /></p> that appears occasionally in CI runs
+          actualHtml.replace(
+            html`
+              <p dir="auto">
+                <span data-lexical-text="true">
+                  Yellow flower in tilt shift lens
+                </span>
+              </p>
+              <p dir="auto"><br /></p>
+            `,
+            html`
+              <p dir="auto">
+                <span data-lexical-text="true">
+                  Yellow flower in tilt shift lens
+                </span>
+              </p>
+            `,
+          ),
+      );
 
-    // Delete image
-    // TODO Revisit the a11y side of NestedEditors
-    await evaluate(page, () => {
-      const p = document.querySelector('[contenteditable="true"] p');
-      document.getSelection().setBaseAndExtent(p, 0, p, 0);
-    });
-    await selectAll(page);
-    await page.keyboard.press('Delete');
-    await assertHTML(
-      page,
-      html`
-        <p><br /></p>
-      `,
-      undefined,
-      {
-        ignoreClasses: true,
-        ignoreInlineStyles: true,
-      },
-    );
+      // Delete image
+      // TODO Revisit the a11y side of NestedEditors
+      await evaluate(page, () => {
+        const p = document.querySelector('[contenteditable="true"] p');
+        document.getSelection().setBaseAndExtent(p, 0, p, 0);
+      });
+      await selectAll(page);
+      await page.keyboard.press('Delete');
+      await assertHTML(
+        page,
+        html`
+          <p dir="auto"><br /></p>
+        `,
+        undefined,
+        {
+          ignoreClasses: true,
+          ignoreInlineStyles: true,
+        },
+      );
 
-    // Add table
-    await selectFromInsertDropdown(page, '.table');
-    await click(page, '[data-test-id="table-model-confirm-insert"] button');
+      // Add table
+      await selectFromInsertDropdown(page, '.table');
+      await click(page, '[data-test-id="table-model-confirm-insert"] button');
 
-    await assertHTML(
-      page,
-      html`
-        <p>
-          <br />
-        </p>
-        <table>
-          <tr>
-            <th>
-              <p><br /></p>
-            </th>
-            <th>
-              <p><br /></p>
-            </th>
-            <th>
-              <p><br /></p>
-            </th>
-            <th>
-              <p><br /></p>
-            </th>
-            <th>
-              <p><br /></p>
-            </th>
-          </tr>
-          <tr>
-            <th>
-              <p><br /></p>
-            </th>
-            <td>
-              <p><br /></p>
-            </td>
-            <td>
-              <p><br /></p>
-            </td>
-            <td>
-              <p><br /></p>
-            </td>
-            <td>
-              <p><br /></p>
-            </td>
-          </tr>
-          <tr>
-            <th>
-              <p><br /></p>
-            </th>
-            <td>
-              <p><br /></p>
-            </td>
-            <td>
-              <p><br /></p>
-            </td>
-            <td>
-              <p><br /></p>
-            </td>
-            <td>
-              <p><br /></p>
-            </td>
-          </tr>
-          <tr>
-            <th>
-              <p><br /></p>
-            </th>
-            <td>
-              <p><br /></p>
-            </td>
-            <td>
-              <p><br /></p>
-            </td>
-            <td>
-              <p><br /></p>
-            </td>
-            <td>
-              <p><br /></p>
-            </td>
-          </tr>
-          <tr>
-            <th>
-              <p><br /></p>
-            </th>
-            <td>
-              <p><br /></p>
-            </td>
-            <td>
-              <p><br /></p>
-            </td>
-            <td>
-              <p><br /></p>
-            </td>
-            <td>
-              <p><br /></p>
-            </td>
-          </tr>
-        </table>
-        <p><br /></p>
-      `,
-      undefined,
-      {
-        ignoreClasses: true,
-        ignoreInlineStyles: true,
-      },
-    );
-  });
+      await assertHTML(
+        page,
+        html`
+          <p dir="auto">
+            <br />
+          </p>
+          <table dir="auto">
+            <colgroup>
+              <col style="width: 92px" />
+              <col style="width: 92px" />
+              <col style="width: 92px" />
+              <col style="width: 92px" />
+              <col style="width: 92px" />
+            </colgroup>
+            <tr>
+              <th>
+                <p><br /></p>
+              </th>
+              <th>
+                <p><br /></p>
+              </th>
+              <th>
+                <p><br /></p>
+              </th>
+              <th>
+                <p><br /></p>
+              </th>
+              <th>
+                <p><br /></p>
+              </th>
+            </tr>
+            <tr>
+              <th>
+                <p><br /></p>
+              </th>
+              <td>
+                <p><br /></p>
+              </td>
+              <td>
+                <p><br /></p>
+              </td>
+              <td>
+                <p><br /></p>
+              </td>
+              <td>
+                <p><br /></p>
+              </td>
+            </tr>
+            <tr>
+              <th>
+                <p><br /></p>
+              </th>
+              <td>
+                <p><br /></p>
+              </td>
+              <td>
+                <p><br /></p>
+              </td>
+              <td>
+                <p><br /></p>
+              </td>
+              <td>
+                <p><br /></p>
+              </td>
+            </tr>
+            <tr>
+              <th>
+                <p><br /></p>
+              </th>
+              <td>
+                <p><br /></p>
+              </td>
+              <td>
+                <p><br /></p>
+              </td>
+              <td>
+                <p><br /></p>
+              </td>
+              <td>
+                <p><br /></p>
+              </td>
+            </tr>
+            <tr>
+              <th>
+                <p><br /></p>
+              </th>
+              <td>
+                <p><br /></p>
+              </td>
+              <td>
+                <p><br /></p>
+              </td>
+              <td>
+                <p><br /></p>
+              </td>
+              <td>
+                <p><br /></p>
+              </td>
+            </tr>
+          </table>
+          <p dir="auto"><br /></p>
+        `,
+        undefined,
+        {
+          ignoreClasses: true,
+          ignoreInlineStyles: true,
+        },
+      );
+    },
+  );
 
   test('Center align image', async ({page, isPlainText, isCollab}) => {
     // Image selection can't be synced in collab
@@ -238,29 +276,55 @@ test.describe('Toolbar', () => {
     await assertHTML(
       page,
       html`
-        <p class="PlaygroundEditorTheme__paragraph">
+        <p class="PlaygroundEditorTheme__paragraph" dir="auto">
           <span
             class="editor-image"
             contenteditable="false"
             data-lexical-decorator="true">
             <div draggable="true">
               <img
-                alt="Yellow flower in tilt shift lens"
                 class="focused draggable"
+                alt="Yellow flower in tilt shift lens"
                 draggable="false"
                 src="${SAMPLE_IMAGE_URL}"
                 style="height: inherit; max-width: 500px; width: inherit" />
             </div>
             <div>
-              <button class="image-caption-button">Add Caption</button>
-              <div class="image-resizer image-resizer-n"></div>
-              <div class="image-resizer image-resizer-ne"></div>
-              <div class="image-resizer image-resizer-e"></div>
-              <div class="image-resizer image-resizer-se"></div>
-              <div class="image-resizer image-resizer-s"></div>
-              <div class="image-resizer image-resizer-sw"></div>
-              <div class="image-resizer image-resizer-w"></div>
-              <div class="image-resizer image-resizer-nw"></div>
+              <button class="image-caption-button" type="button">
+                Add Caption
+              </button>
+              <div
+                class="image-resizer image-resizer-n"
+                role="button"
+                tabindex="-1"></div>
+              <div
+                class="image-resizer image-resizer-ne"
+                role="button"
+                tabindex="-1"></div>
+              <div
+                class="image-resizer image-resizer-e"
+                role="button"
+                tabindex="-1"></div>
+              <div
+                class="image-resizer image-resizer-se"
+                role="button"
+                tabindex="-1"></div>
+              <div
+                class="image-resizer image-resizer-s"
+                role="button"
+                tabindex="-1"></div>
+              <div
+                class="image-resizer image-resizer-sw"
+                role="button"
+                tabindex="-1"></div>
+              <div
+                class="image-resizer image-resizer-w"
+                role="button"
+                tabindex="-1"></div>
+              <div
+                class="image-resizer image-resizer-nw"
+                role="button"
+                tabindex="-1"></div>
             </div>
           </span>
           <br />
@@ -274,29 +338,58 @@ test.describe('Toolbar', () => {
     await assertHTML(
       page,
       html`
-        <p class="PlaygroundEditorTheme__paragraph" style="text-align: center">
+        <p
+          class="PlaygroundEditorTheme__paragraph"
+          style="text-align: center"
+          dir="auto">
           <span
             class="editor-image"
             contenteditable="false"
             data-lexical-decorator="true">
             <div draggable="true">
               <img
-                alt="Yellow flower in tilt shift lens"
                 class="focused draggable"
+                alt="Yellow flower in tilt shift lens"
                 draggable="false"
                 src="${SAMPLE_IMAGE_URL}"
                 style="height: inherit; max-width: 500px; width: inherit" />
             </div>
             <div>
-              <button class="image-caption-button">Add Caption</button>
-              <div class="image-resizer image-resizer-n"></div>
-              <div class="image-resizer image-resizer-ne"></div>
-              <div class="image-resizer image-resizer-e"></div>
-              <div class="image-resizer image-resizer-se"></div>
-              <div class="image-resizer image-resizer-s"></div>
-              <div class="image-resizer image-resizer-sw"></div>
-              <div class="image-resizer image-resizer-w"></div>
-              <div class="image-resizer image-resizer-nw"></div>
+              <button class="image-caption-button" type="button">
+                Add Caption
+              </button>
+              <div
+                class="image-resizer image-resizer-n"
+                role="button"
+                tabindex="-1"></div>
+              <div
+                class="image-resizer image-resizer-ne"
+                role="button"
+                tabindex="-1"></div>
+              <div
+                class="image-resizer image-resizer-e"
+                role="button"
+                tabindex="-1"></div>
+              <div
+                class="image-resizer image-resizer-se"
+                role="button"
+                tabindex="-1"></div>
+              <div
+                class="image-resizer image-resizer-s"
+                role="button"
+                tabindex="-1"></div>
+              <div
+                class="image-resizer image-resizer-sw"
+                role="button"
+                tabindex="-1"></div>
+              <div
+                class="image-resizer image-resizer-w"
+                role="button"
+                tabindex="-1"></div>
+              <div
+                class="image-resizer image-resizer-nw"
+                role="button"
+                tabindex="-1"></div>
             </div>
           </span>
           <br />

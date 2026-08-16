@@ -3,7 +3,12 @@
   import {getContext} from 'svelte';
   import type {Writable} from 'svelte/store';
   import DropDown from '../../generic/dropdown/DropDown.svelte';
-  import {blockTypeToBlockName} from './blockTypeToBlockName.js';
+  import {blockTypeToBlockName} from '../ToolbarData.js';
+  interface Props {
+    children?: import('svelte').Snippet;
+  }
+
+  let {children}: Props = $props();
 
   const blockType: Writable<keyof typeof blockTypeToBlockName> =
     getContext('blockType');
@@ -16,5 +21,5 @@
   buttonIconClassName={'icon block-type ' + $blockType}
   buttonLabel={blockTypeToBlockName[$blockType]}
   buttonAriaLabel="Formatting options for text style">
-  <slot />
+  {@render children?.()}
 </DropDown>

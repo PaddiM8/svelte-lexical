@@ -118,10 +118,6 @@
   function onInsert(payload: ImagePayload): boolean {
     editor.update(() => {
       let imageNode = createImageNode(payload);
-      insertNodes([imageNode]);
-      if (isRootOrShadowRoot(imageNode.getParentOrThrow())) {
-        wrapNodeInElement(imageNode, createParagraphNode).selectEnd();
-      }
       dispatcher('insert', {src: payload.src, node: imageNode});
     });
 
@@ -140,10 +136,20 @@
 
     const reader = new FileReader();
     reader.onloadend = () => {
-      onInsert({
+      const payload = {
         src: reader.result?.toString() || '',
         altText: '',
+      }
+
+      editor.update(() => {
+        let imageNode = createImageNode(payload);
+        insertNodes([imageNode]);
+        if (isRootOrShadowRoot(imageNode.getParentOrThrow())) {
+          wrapNodeInElement(imageNode, createParagraphNode).selectEnd();
+        }
       });
+
+      onInsert(payload);
     };
     reader.readAsDataURL(clipboardFiles[0]);
 

@@ -1,7 +1,7 @@
 {
-  "name": "svelte-lexical",
+  "name": "@paddim8/svelte-lexical",
   "description": "Rich Text editor for Svelte based on lexical",
-  "version": "0.6.5",
+  "version": "0.6.8",
   "type": "module",
   "license": "MIT",
   "repository": {
